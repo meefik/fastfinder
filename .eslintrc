@@ -1,0 +1,28 @@
+{
+  "env": {
+    "node": true,
+    "es6": true
+  },
+  "extends": [
+    "standard"
+  ],
+  "parserOptions": {
+    "sourceType": "module",
+    "requireConfigFile": false
+  },
+  "ignorePatterns": [
+    "*.min.js",
+    "dist/**/*.js",
+    "node_modules/**/*.js"
+  ],
+  "rules": {
+    "indent": [
+      "error",
+      2
+    ],
+    "semi": [
+      "error",
+      "always"
+    ]
+  }
+}
