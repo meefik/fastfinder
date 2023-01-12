@@ -1,5 +1,5 @@
 {
-  "name": "fastfinder",
+  "name": "fastfinder-parser",
   "version": "0.1.0",
   "description": "Website search parser",
   "repository": "github:meefik/fastfinder",
@@ -12,13 +12,13 @@
   "private": true,
   "license": "UNLICENSED",
   "dependencies": {
-    "puppeteer": "^19.4.0"
+    "puppeteer": "^19.5.2"
   },
   "devDependencies": {
-    "eslint": "^8.28.0",
+    "eslint": "^8.31.0",
     "eslint-config-standard": "^17.0.0",
-    "eslint-plugin-import": "^2.26.0",
-    "eslint-plugin-n": "^15.5.1",
+    "eslint-plugin-import": "^2.27.4",
+    "eslint-plugin-n": "^15.6.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^6.1.1"
   },
