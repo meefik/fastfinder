@@ -2,17 +2,24 @@
   "name": "fastfinder-parser",
   "version": "0.1.0",
   "description": "Website search parser",
-  "repository": "github:meefik/fastfinder",
-  "main": "index.js",
+  "repository": "github:meefik/fastfinder-parser",
+  "main": "src/server.js",
   "scripts": {
-    "start": "node src/index.js",
+    "start": "node src/server.js",
+    "dev": "nodemon --watch src src/server.js",
     "eslint": "eslint src --ext .js --config .eslintrc --fix",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "private": true,
   "license": "UNLICENSED",
   "dependencies": {
-    "puppeteer": "^19.5.2"
+    "compression": "^1.7.4",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "morgan": "^1.10.0",
+    "nconf": "^0.12.0",
+    "puppeteer": "^19.5.2",
+    "winston": "^3.8.2"
   },
   "devDependencies": {
     "eslint": "^8.31.0",
@@ -20,7 +27,8 @@
     "eslint-plugin-import": "^2.27.4",
     "eslint-plugin-n": "^15.6.1",
     "eslint-plugin-node": "^11.1.0",
-    "eslint-plugin-promise": "^6.1.1"
+    "eslint-plugin-promise": "^6.1.1",
+    "nodemon": "^2.0.20"
   },
   "engines": {
     "node": ">= 18",

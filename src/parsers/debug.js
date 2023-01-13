@@ -1,8 +1,6 @@
 const puppeteer = require('puppeteer');
 
-// Example
-// @see https://pptr.dev
-(async () => {
+module.exports = async function (params) {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
@@ -29,7 +27,9 @@ const puppeteer = require('puppeteer');
   }, resultsSelector);
 
   // Print all the files.
-  console.log(links.join('\n'));
+  // console.log(links.join('\n'));
 
   await browser.close();
-})();
+
+  return links;
+};
