@@ -1,9 +1,10 @@
 const puppeteer = require('puppeteer');
+const DEBUG_MODE = process.env.NODE_ENV === 'development';
 
 module.exports = async function (params) {
   const products = [];
 
-  const browser = await puppeteer.launch(params.debug
+  const browser = await puppeteer.launch(DEBUG_MODE
     ? { headless: false, devtools: true, args: ['--start-maximized'], defaultViewport: null }
     : { headless: true });
   let [page] = await browser.pages();

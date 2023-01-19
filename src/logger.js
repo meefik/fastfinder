@@ -2,7 +2,7 @@ const cluster = require('cluster');
 const { createLogger, format, transports } = require('winston');
 const { combine, timestamp, colorize, printf } = format;
 
-const IS_PROD = process.env.NODE_ENV === 'production';
+const DEBUG_MODE = process.env.NODE_ENV === 'development';
 const PRINT_FN = function ({ label, level, message, timestamp }) {
   if (!label) label = 'worker';
   return `${timestamp} ${level} [${label}-${
@@ -11,10 +11,10 @@ const PRINT_FN = function ({ label, level, message, timestamp }) {
 };
 
 const logger = createLogger({
-  level: IS_PROD ? 'info' : 'debug',
-  format: IS_PROD
-    ? combine(timestamp(), printf(PRINT_FN))
-    : combine(timestamp(), colorize(), printf(PRINT_FN)),
+  level: DEBUG_MODE ? 'debug' : 'info',
+  format: DEBUG_MODE
+    ? combine(timestamp(), colorize(), printf(PRINT_FN))
+    : combine(timestamp(), printf(PRINT_FN)),
   transports: [
     new transports.Console({
       stderrLevels: ['error'],
