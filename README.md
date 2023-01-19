@@ -51,19 +51,25 @@ Output:
         "image": "https://contentinfo.autozone.com/znetcs/product-info/en/US/jci/H6-AGM/image/2/",
         "title": "Duralast Platinum AGM Battery H6-AGM Group Size 48 760 CCA",
         "price": 239.99,
-        "availability": true
+        "location": "142 BAY LYN DR",
+        "availability": true,
+        "link": "https://www.autozone.com/batteries-starting-and-charging/battery/p/duralast-platinum-agm-battery-h6-agm-group-size-48-760-cca/319460_0_0"
     },
     {
         "image": "https://contentinfo.autozone.com/znetcs/product-info/en/US/jci/DH6/image/2/",
         "title": "Optima AGM Yellow Top Battery DH6 Group Size H6/LN3 800 CCA",
         "price": 339.99,
-        "availability": false
+        "location": "",
+        "availability": false,
+        "link": "https://www.autozone.com/batteries-starting-and-charging/battery/p/optima-agm-yellow-top-battery-dh6-group-size-h6-ln3-800-cca/937705_0_0"
     },
     {
         "image": "https://contentinfo.autozone.com/znetcs/product-info/en/US/ody/48-720T/image/2/",
         "title": "Odyssey Battery 48-720T Group Size 48 723 CCA",
         "price": 324.99,
-        "availability": true
+        "location": "142 BAY LYN DR",
+        "availability": true,
+        "link": "https://www.autozone.com/batteries-starting-and-charging/battery/p/odyssey-battery-48-720t-group-size-48-723-cca/832130_0_0"
     }
 ]
 ```

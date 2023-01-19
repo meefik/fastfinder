@@ -1,6 +1,29 @@
 const puppeteer = require('puppeteer');
 const DEBUG_MODE = process.env.NODE_ENV === 'development';
 
+/**
+ * @typedef {Object} Item
+ * @property {string} image - Item image link.
+ * @property {string} title - Item title.
+ * @property {number} price - Price per item.
+ * @property {string} location Store address.
+ * @property {boolean} availability Availability in the store.
+ * @property {string} link Link to the item in the store.
+ */
+
+/**
+ * Run a parser for www.autozone.com
+ *
+ * @param {Object} params Input parameters.
+ * @param {string} params.vehicle.year Vehicle year
+ * @param {string} params.vehicle.make Vehicle make
+ * @param {string} params.vehicle.model Vehicle model
+ * @param {string} params.vehicle.engine Vehicle engine
+ * @param {string} params.vehicle.vin Vehicle VIN
+ * @param {string} params.location.zip Store ZIP code
+ * @param {string[]} params.categories List of categories
+ * @returns {Item[]} List of found parts
+ */
 module.exports = async function (params) {
   const products = [];
 
@@ -119,12 +142,16 @@ module.exports = async function (params) {
       });
       const title = await productSection.$eval('div[data-testid="productInfo"] h3', el => el.textContent);
       const price = await productSection.$eval('div[data-testid="product-price-container"]', el => el.textContent);
-      const availability = await productSection.$eval('span[data-testid*="availability-"]', el => el.textContent === 'In Stock');
+      const availability = await productSection.$eval('span[data-testid^="availability-"]', el => el.textContent === 'In Stock');
+      const location = availability ? await productSection.$eval('button[data-testid="search-store-button"]', el => el.textContent) : '';
+      const link = await productSection.$eval('div[data-testid="productInfo"] a', el => el.href);
       products.push({
         image,
         title,
         price: parseFloat(`${price}`.replace(/[^0-9.]+/g, '')),
-        availability
+        location,
+        availability,
+        link
       });
     }
   }

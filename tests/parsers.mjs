@@ -4,7 +4,6 @@ import autozoneParser from '../src/parsers/autozone.js';
 
 test('autozone', async (_t) => {
   const params = {
-    debug: false,
     vehicle: {
       year: '2015',
       make: 'Ford',
@@ -23,8 +22,7 @@ test('autozone', async (_t) => {
   };
   try {
     const data = await autozoneParser(params);
-    if (data.length > 0) assert.ok(data);
-    else assert.fail('Not found');
+    assert.ok(data.length > 0, 'Not found');
   } catch (err) {
     assert.fail(err);
   }
