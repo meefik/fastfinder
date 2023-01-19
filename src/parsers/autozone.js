@@ -19,7 +19,7 @@ const DEBUG_MODE = process.env.NODE_ENV === 'development';
  * @param {string} params.vehicle.make Vehicle make
  * @param {string} params.vehicle.model Vehicle model
  * @param {string} params.vehicle.engine Vehicle engine
- * @param {string} params.vehicle.vin Vehicle VIN
+ * @param {string} params.vehicle.vin Vehicle VIN code
  * @param {string} params.location.zip Store ZIP code
  * @param {string[]} params.categories List of categories
  * @returns {Item[]} List of found parts
@@ -66,41 +66,46 @@ module.exports = async function (params) {
   // add vehicle
   await page.waitForSelector('#nav_wrapper button[data-testid="deskTopVehicle-menu-lg"]');
   await page.$eval('#nav_wrapper button[data-testid="deskTopVehicle-menu-lg"]', el => el.click());
-  await page.waitForSelector('#yearheader');
-
-  // vehicle: set year
-  await page.$eval('#yearheader', el => el.focus());
-  await page.waitForSelector('div[data-testid="yearheader-dropdown-list"]');
-  await page.type('#yearheader', params.vehicle.year);
-  await page.$eval('#yearheader', el => el.blur());
-
-  // vehicle: set make
-  await page.waitForFunction(() => {
-    return !document.querySelector('#makeheader').disabled;
-  });
-  await page.$eval('#makeheader', el => el.focus());
-  await page.waitForSelector('div[data-testid="makeheader-dropdown-list"]');
-  await page.type('#makeheader', params.vehicle.make);
-  await page.$eval('#makeheader', el => el.blur());
-
-  // vehicle: set model
-  await page.waitForFunction(() => {
-    return !document.querySelector('#modelheader').disabled;
-  });
-  await page.$eval('#modelheader', el => el.focus());
-  await page.waitForSelector('div[data-testid="modelheader-dropdown-list"]');
-  await page.type('#modelheader', params.vehicle.model);
-  await page.$eval('#modelheader', el => el.blur());
-
-  // vehicle: set engine
-  await page.waitForFunction(() => {
-    return !document.querySelector('#engineheader').disabled;
-  });
-  await page.$eval('#engineheader', el => el.focus());
-  await page.waitForSelector('div[data-testid="engineheader-dropdown-list"]');
-  await page.type('#engineheader', params.vehicle.engine);
-  await page.$eval('#engineheader', el => el.blur());
-
+  if (params.vehicle.vin) {
+    // vihicle: set VIN
+    // VIN example: https://vingenerator.org
+    await page.waitForSelector('#vinLookup');
+    await page.$eval('#vinLookup', el => el.focus());
+    await page.type('#vinLookup', params.vehicle.vin);
+    await page.$eval('#vinLookup', el => el.blur());
+    await page.$eval('button[data-testid="ymme-vin-lookup-button"]', el => el.click());
+  } else {
+    // vehicle: set year
+    await page.waitForSelector('#yearheader');
+    await page.$eval('#yearheader', el => el.focus());
+    await page.waitForSelector('div[data-testid="yearheader-dropdown-list"]');
+    await page.type('#yearheader', params.vehicle.year);
+    await page.$eval('#yearheader', el => el.blur());
+    // vehicle: set make
+    await page.waitForFunction(() => {
+      return !document.querySelector('#makeheader').disabled;
+    });
+    await page.$eval('#makeheader', el => el.focus());
+    await page.waitForSelector('div[data-testid="makeheader-dropdown-list"]');
+    await page.type('#makeheader', params.vehicle.make);
+    await page.$eval('#makeheader', el => el.blur());
+    // vehicle: set model
+    await page.waitForFunction(() => {
+      return !document.querySelector('#modelheader').disabled;
+    });
+    await page.$eval('#modelheader', el => el.focus());
+    await page.waitForSelector('div[data-testid="modelheader-dropdown-list"]');
+    await page.type('#modelheader', params.vehicle.model);
+    await page.$eval('#modelheader', el => el.blur());
+    // vehicle: set engine
+    await page.waitForFunction(() => {
+      return !document.querySelector('#engineheader').disabled;
+    });
+    await page.$eval('#engineheader', el => el.focus());
+    await page.waitForSelector('div[data-testid="engineheader-dropdown-list"]');
+    await page.type('#engineheader', params.vehicle.engine);
+    await page.$eval('#engineheader', el => el.blur());
+  }
   // wait for save the vehicle
   await page.waitForSelector('div[data-testid="vehicle-text"]');
 

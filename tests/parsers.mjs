@@ -8,8 +8,8 @@ test('autozone', async (_t) => {
       year: '2015',
       make: 'Ford',
       model: 'Transit-150',
-      engine: '5 Cylinders V 3.2L Turbo Dsl DOHC 195 CID',
-      vin: ''
+      engine: '5 Cylinders V 3.2L Turbo Dsl DOHC 195 CID'
+      // vin: '1FTSW21P75EA53447'
     },
     location: {
       zip: '98264'

@@ -30,7 +30,8 @@ curl -X POST -H 'Content-Type: application/json' -H 'X-Api-Key: secret' -d '{
       "year": "2015",
       "make": "Ford",
       "model": "Transit-150",
-      "engine": "5 Cylinders V 3.2L Turbo Dsl DOHC 195 CID"
+      "engine": "5 Cylinders V 3.2L Turbo Dsl DOHC 195 CID",
+      "vin": ""
     },
     "location": {
       "zip": "98264"
