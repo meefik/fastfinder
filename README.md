@@ -14,14 +14,14 @@ npm start
 npm run dev
 ```
 
+## Run tests
+
+```sh
+npm test
+```
+
 ## Send request to API
 
 ```sh
-curl http://localhost:8080/api/debug
-```
-
-## Run the parser without a server
-
-```sh
-node ./src/parser.js debug
+curl -X POST -H 'Content-Type: application/json' -d '{}' http://localhost:8080/api/autozone
 ```

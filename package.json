@@ -8,7 +8,7 @@
     "start": "node src/server.js",
     "dev": "nodemon --watch src src/server.js",
     "eslint": "eslint src --ext .js --config .eslintrc --fix",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node tests/parsers.mjs"
   },
   "private": true,
   "license": "UNLICENSED",
