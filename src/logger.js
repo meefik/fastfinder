@@ -2,7 +2,6 @@ const cluster = require('cluster');
 const { createLogger, format, transports } = require('winston');
 const { combine, timestamp, colorize, printf } = format;
 
-// Webpack устанавливает переменную `process.env.NODE_ENV` при сборке
 const IS_PROD = process.env.NODE_ENV === 'production';
 const PRINT_FN = function ({ label, level, message, timestamp }) {
   if (!label) label = 'worker';
