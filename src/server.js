@@ -11,6 +11,10 @@ nconf.defaults({
   port: 8080,
   threads: os.cpus().length, // cores
   timeout: 10, // seconds
+  api: {
+    header: 'x-api-key',
+    key: 'secret'
+  },
   ssl: {
     // key: '-----BEGIN RSA PRIVATE KEY-----\n...',
     // cert: '-----BEGIN CERTIFICATE-----\n...',
