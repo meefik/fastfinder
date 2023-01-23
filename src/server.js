@@ -1,4 +1,3 @@
-const os = require('os');
 const nconf = require('nconf');
 nconf.use('memory');
 nconf.env({
@@ -6,25 +5,7 @@ nconf.env({
   lowerCase: true,
   parseValues: true
 });
-nconf.defaults({
-  host: '0.0.0.0',
-  port: 8080,
-  threads: os.cpus().length, // cores
-  timeout: 10, // seconds
-  api: {
-    header: 'x-api-key',
-    key: 'secret'
-  },
-  ssl: {
-    // key: '-----BEGIN RSA PRIVATE KEY-----\n...',
-    // cert: '-----BEGIN CERTIFICATE-----\n...',
-    // ca: '-----BEGIN CERTIFICATE-----\n...'
-  },
-  static: {
-    // dir: '/path/to/dir',
-    expires: 60 // minutes
-  }
-});
+nconf.defaults(require('./config'));
 const cluster = require('cluster');
 if (cluster.isMaster) {
   const logger = require('./logger');
