@@ -5,20 +5,22 @@ import autozoneParser from '../src/parsers/autozone.js';
 test('autozone', async (_t) => {
   const params = {
     vehicle: {
-      year: '2015',
-      make: 'Ford',
-      model: 'Transit-150',
-      engine: '5 Cylinders V 3.2L Turbo Dsl DOHC 195 CID'
-      // vin: '1FTSW21P75EA53447'
+      // year: '2009',
+      // make: 'Ford',
+      // model: 'F350 Super Duty P/U 2WD',
+      // engine: '8 Cylinders 5 5.4L FI SOHC 330 CID'
+      vin: '1FTSW21P75EA53447'
     },
     location: {
       zip: '98264'
     },
-    categories: [
-      'Batteries, Starting and Charging',
-      'Batteries',
-      'Battery'
-    ]
+    search: {
+      // with subcategories
+      // partNumber: 'H13XV'
+      // single product
+      // partNumber: 'S2XL'
+      partNumber: 'S9549XL'
+    }
   };
   try {
     const data = await autozoneParser(params);

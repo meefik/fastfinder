@@ -21,7 +21,7 @@ const DEBUG_MODE = process.env.NODE_ENV === 'development';
  * @param {string} params.vehicle.engine Vehicle engine
  * @param {string} params.vehicle.vin Vehicle VIN code
  * @param {string} params.location.zip Store ZIP code
- * @param {string[]} params.categories List of categories
+ * @param {string[]} params.search.partNumber Part number
  * @returns {Item[]} List of found parts
  */
 module.exports = async function (params) {
@@ -109,34 +109,23 @@ module.exports = async function (params) {
   // wait for save the vehicle
   await page.waitForSelector('div[data-testid="vehicle-text"]');
 
-  // show specific category
-  let categoryFound = false;
-  const categories = [].concat(params.categories).slice();
-  for (let i = 0; i < categories.length; i++) {
-    const category = categories[i];
-    await page.waitForSelector('h2[data-testid="ymme-title"]');
-    // await page.waitForSelector('h2[data-testid="ymme-what-are-you-working-on-today"]');
-    categoryFound = await page.$$eval('main ul>li>a>div>span', (elements, category) => {
-      for (let i = 0; i < elements.length; i++) {
-        const element = elements[i];
-        const text = element.textContent;
-        if (text === category) {
-          document.querySelector('h2[data-testid="ymme-title"]')?.remove();
-          element.parentElement.parentElement.click();
-          return true;
-        }
-      }
-      return false;
-    }, category);
-    if (!categoryFound) break;
+  // search by part number
+  await page.goto(`https://www.autozone.com/searchresult?searchText=${encodeURIComponent(params.search.partNumber)}`);
+  await page.waitForSelector('h1[data-testid="search-results-thin-header"], h1[data-testid="product-title"]');
+
+  // go to the first category
+  const categoryElement = await page.$('div[data-testid="search-result-list"] a');
+  if (categoryElement) {
+    const href = await categoryElement.evaluate(el => el.href, categoryElement);
+    await page.goto(href);
+    await page.waitForSelector('div[data-testid="productInfoSection"], h1[data-testid="product-title"]');
   }
 
-  // read procuct info
-  if (categoryFound) {
-    await page.waitForSelector('div[data-testid="productInfoSection"]');
-    const productSections = await page.$$('div[data-testid="productInfoSection"]');
-    for (let i = 0; i < productSections.length; i++) {
-      const productSection = productSections[i];
+  // read procuct info from list
+  const productList = await page.$$('div[data-testid="productInfoSection"]');
+  if (productList?.length) {
+    for (let i = 0; i < productList.length; i++) {
+      const productSection = productList[i];
       const image = await productSection.$eval('img[data-testid="shelf-product-image"]', async el => {
         el.scrollIntoView();
         for (let i = 0; i < 10; i++) {
@@ -145,17 +134,55 @@ module.exports = async function (params) {
         }
         return el.src;
       });
-      const title = await productSection.$eval('div[data-testid="productInfo"] h3', el => el.textContent);
-      const price = await productSection.$eval('div[data-testid="product-price-container"]', el => el.textContent);
-      const availability = await productSection.$eval('span[data-testid^="availability-"]', el => el.textContent === 'In Stock');
-      const location = availability ? await productSection.$eval('button[data-testid="search-store-button"]', el => el.textContent) : '';
+      const title = await productSection.$eval('div[data-testid="productInfo"] h3', el => el.textContent?.trim());
+      const price = await productSection.$eval('div[data-testid="product-price-container"]', el => {
+        const text = el.textContent;
+        return text ? parseFloat(`${text}`.replace(/[^0-9.]+/g, '')) : null;
+      });
+      const partNumber = await productSection.$eval('div[data-testid="product-part-number"] >span:nth-child(2)', el => el.textContent?.trim());
+      const availability = await productSection.$eval('span[data-testid^="availability-"]', el => /^In Stock/.test(el.textContent));
+      const location = availability ? await productSection.$eval('button[data-testid="search-store-button"]', el => el.textContent?.trim()) : '';
+      const fits = await productSection.$eval('button[data-testid="fitment-button-fits-vehicle"]', el => /^Fits/.test(el.textContent));
       const link = await productSection.$eval('div[data-testid="productInfo"] a', el => el.href);
       products.push({
         image,
         title,
-        price: parseFloat(`${price}`.replace(/[^0-9.]+/g, '')),
-        location,
+        partNumber,
+        price,
         availability,
+        location,
+        fits,
+        link
+      });
+    }
+  } else {
+    // read product info from single page
+    const title = await page.$eval('h1[data-testid="product-title"]', el => el.textContent?.trim());
+    if (title) {
+      // wait for the price to load
+      await page.waitForFunction(() => {
+        const el = document.querySelector('div[data-testid="price-quantity-wrapper"] div[data-testid="price-fragment"]');
+        return !/^Price Not Available/i.test(el?.textContent);
+      });
+      const price = await page.$eval('div[data-testid="price-quantity-wrapper"] div[data-testid="price-fragment"]', el => {
+        const text = el.textContent;
+        return text ? parseFloat(`${text}`.replace(/[^0-9.]+/g, '')) : null;
+      });
+      const image = await page.$eval('div[data-testid="enlarged-image-box"] img', el => el.src);
+      const partNumber = await page.$eval('div[data-testid="partNumber-container"] >span:nth-child(2)', el => el.textContent?.trim());
+      const availability = await page.$eval('span[data-testid^="availability-"]', el => /^In Stock/.test(el.textContent));
+      const location = availability ? await page.$eval('button[data-testid="search-store-button"]', el => el.textContent?.trim()) : '';
+      const fitsElement = await page.$('button[data-testid="fitment-button-fits-vehicle"]');
+      const fits = fitsElement ? await fitsElement.evaluate(el => /^Fits/.test(el.textContent), fitsElement) : false;
+      const link = await page.url();
+      products.push({
+        image,
+        title,
+        partNumber,
+        price,
+        availability,
+        location,
+        fits,
         link
       });
     }
