@@ -15,13 +15,9 @@ const DEBUG_MODE = process.env.NODE_ENV === 'development';
  * Run a parser for www.autozone.com
  *
  * @param {Object} params Input parameters.
- * @param {string} params.vehicle.year Vehicle year
- * @param {string} params.vehicle.make Vehicle make
- * @param {string} params.vehicle.model Vehicle model
- * @param {string} params.vehicle.engine Vehicle engine
- * @param {string} params.vehicle.vin Vehicle VIN code
- * @param {string} params.location.zip Store ZIP code
- * @param {string[]} params.search.partNumber Part number
+ * @param {string} params.vin Vehicle VIN code
+ * @param {string} params.zip Store ZIP code
+ * @param {string[]} params.partNumber Part number
  * @returns {Item[]} List of found parts
  */
 module.exports = async function (params) {
@@ -37,8 +33,8 @@ module.exports = async function (params) {
     height: 720,
     deviceScaleFactor: 1
   });
-  const context = browser.defaultBrowserContext();
-  await context.overridePermissions('https://www.autozone.com', ['geolocation']);
+  // const context = browser.defaultBrowserContext();
+  // await context.overridePermissions('https://www.autozone.com', ['geolocation']);
   // fix for headless https://github.com/puppeteer/puppeteer/issues/665
   await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36');
   await page.goto('https://www.autozone.com/parts');
@@ -54,7 +50,7 @@ module.exports = async function (params) {
   await page.$eval('#changeStoreBtn', el => el.click());
   await page.waitForSelector('#SearchInput');
   await page.$eval('#SearchInput', el => el.focus());
-  await page.type('#SearchInput', params.location.zip);
+  await page.type('#SearchInput', params.zip);
   await page.$eval('button[data-testid="address-search-keyword"]', el => el.click());
   await page.waitForSelector('button[data-testid="set-store-btn-0"]');
   await page.$eval('button[data-testid="set-store-btn-0"]', el => el.click());
@@ -62,55 +58,23 @@ module.exports = async function (params) {
     const newStoreName = document.querySelector('#nav_wrapper span[data-testid="store-name-text-top-header"]')?.textContent;
     return newStoreName && newStoreName !== oldStoreName;
   }, {}, oldStoreName);
+  // FIXME: Invalid ZIP or store not found
 
-  // add vehicle
+  // add vehicle by VIN
   await page.waitForSelector('#nav_wrapper button[data-testid="deskTopVehicle-menu-lg"]');
   await page.$eval('#nav_wrapper button[data-testid="deskTopVehicle-menu-lg"]', el => el.click());
-  if (params.vehicle.vin) {
-    // vihicle: set VIN
-    // VIN example: https://vingenerator.org
-    await page.waitForSelector('#vinLookup');
-    await page.$eval('#vinLookup', el => el.focus());
-    await page.type('#vinLookup', params.vehicle.vin);
-    await page.$eval('#vinLookup', el => el.blur());
-    await page.$eval('button[data-testid="ymme-vin-lookup-button"]', el => el.click());
-  } else {
-    // vehicle: set year
-    await page.waitForSelector('#yearheader');
-    await page.$eval('#yearheader', el => el.focus());
-    await page.waitForSelector('div[data-testid="yearheader-dropdown-list"]');
-    await page.type('#yearheader', params.vehicle.year);
-    await page.$eval('#yearheader', el => el.blur());
-    // vehicle: set make
-    await page.waitForFunction(() => {
-      return !document.querySelector('#makeheader').disabled;
-    });
-    await page.$eval('#makeheader', el => el.focus());
-    await page.waitForSelector('div[data-testid="makeheader-dropdown-list"]');
-    await page.type('#makeheader', params.vehicle.make);
-    await page.$eval('#makeheader', el => el.blur());
-    // vehicle: set model
-    await page.waitForFunction(() => {
-      return !document.querySelector('#modelheader').disabled;
-    });
-    await page.$eval('#modelheader', el => el.focus());
-    await page.waitForSelector('div[data-testid="modelheader-dropdown-list"]');
-    await page.type('#modelheader', params.vehicle.model);
-    await page.$eval('#modelheader', el => el.blur());
-    // vehicle: set engine
-    await page.waitForFunction(() => {
-      return !document.querySelector('#engineheader').disabled;
-    });
-    await page.$eval('#engineheader', el => el.focus());
-    await page.waitForSelector('div[data-testid="engineheader-dropdown-list"]');
-    await page.type('#engineheader', params.vehicle.engine);
-    await page.$eval('#engineheader', el => el.blur());
-  }
+  // VIN example: https://vingenerator.org
+  await page.waitForSelector('#vinLookup');
+  await page.$eval('#vinLookup', el => el.focus());
+  await page.type('#vinLookup', params.vin);
+  await page.$eval('#vinLookup', el => el.blur());
+  await page.$eval('button[data-testid="ymme-vin-lookup-button"]', el => el.click());
   // wait for save the vehicle
   await page.waitForSelector('div[data-testid="vehicle-text"]');
+  // FIXME: Invalid VIN or not found
 
   // search by part number
-  await page.goto(`https://www.autozone.com/searchresult?searchText=${encodeURIComponent(params.search.partNumber)}`);
+  await page.goto(`https://www.autozone.com/searchresult?searchText=${encodeURIComponent(params.partNumber)}`);
   await page.waitForSelector('h1[data-testid="search-results-thin-header"], h1[data-testid="product-title"]');
 
   // go to the first category
@@ -157,8 +121,9 @@ module.exports = async function (params) {
     }
   } else {
     // read product info from single page
-    const title = await page.$eval('h1[data-testid="product-title"]', el => el.textContent?.trim());
-    if (title) {
+    const titleElement = await page.$('h1[data-testid="product-title"]');
+    if (titleElement) {
+      const title = await titleElement.evaluate(el => el.textContent?.trim(), titleElement);
       // wait for the price to load
       await page.waitForFunction(() => {
         const el = document.querySelector('div[data-testid="price-quantity-wrapper"] div[data-testid="price-fragment"]');
@@ -188,6 +153,7 @@ module.exports = async function (params) {
     }
   }
 
+  // FIXME: close the browser if any throws
   await browser.close();
 
   return products;
