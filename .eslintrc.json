@@ -1,14 +1,21 @@
 {
   "env": {
     "node": true,
-    "es6": true
+    "es6": true,
+    "browser": true
   },
   "extends": [
     "standard"
   ],
+  "parser": "@babel/eslint-parser",
   "parserOptions": {
     "sourceType": "module",
-    "requireConfigFile": false
+    "requireConfigFile": false,
+    "babelOptions": {
+      "babelrc": false,
+      "configFile": false,
+      "presets": ["@babel/preset-env"]
+    }
   },
   "ignorePatterns": [
     "*.min.js",

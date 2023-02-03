@@ -8,7 +8,7 @@ nconf.env({
 nconf.defaults(require('./config'));
 const cluster = require('cluster');
 if (cluster.isMaster) {
-  const logger = require('./logger');
+  const logger = require('lib/logger');
   const shutdown = async function () {
     if (shutdown.executed) return;
     shutdown.executed = true;
@@ -65,10 +65,12 @@ if (cluster.isMaster) {
 } else if (cluster.isWorker) {
   const express = require('express');
   const fs = require('fs');
+  const path = require('path');
   const morgan = require('morgan');
   const compression = require('compression');
   const cors = require('cors');
-  const logger = require('./logger');
+  const logger = require('lib/logger');
+  const db = require('db');
   const app = express();
   const createServer = (app) => {
     const protocol = nconf.get('ssl:key') && nconf.get('ssl:cert')
@@ -146,12 +148,17 @@ if (cluster.isMaster) {
     // routing
     app.use('/api', require('./routes'));
     // static
-    if (nconf.get('static:dir')) {
-      app.use(express.static(nconf.get('static:dir'),
-        nconf.get('static:expires')
-          ? { maxAge: nconf.get('static:expires') * 60 * 1000 }
-          : {}));
-    }
+    [nconf.get('static:dir'), path.join(__dirname, 'public')].forEach(function (dir) {
+      if (!dir) return;
+      app.use(
+        express.static(
+          dir,
+          nconf.get('static:expires')
+            ? { maxAge: nconf.get('static:expires') * 60 * 1000 }
+            : {}
+        )
+      );
+    });
     // default router
     app.use(function (req, res, next) {
       res.status(404);
@@ -204,6 +211,7 @@ if (cluster.isMaster) {
         setTimeout(() => process.exit(1), timeout * 1000);
       }
       try {
+        await db.disconnect();
         await Promise.all([
           new Promise(resolve => server.close(resolve))
         ]);
@@ -231,5 +239,7 @@ if (cluster.isMaster) {
     process.once('SIGINT', shutdown);
     // Graceful shutdown for nodemon
     process.once('SIGUSR2', shutdown);
+    // Connect to DB
+    db.connect();
   }
 }

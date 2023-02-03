@@ -21,7 +21,7 @@ See [AWS CLI Quick setup](https://docs.aws.amazon.com/cli/latest/userguide/getti
 docker volume create cache
 docker run -d --name parser --restart always --cap-add=SYS_ADMIN \
   --tmpfs /tmp \
-  -p 8080:8080 \
-  -e "API_KEY=secret" \
+  -p 3000:3000 \
+  -e "SESSION_KEY=secret" \
   public.ecr.aws/<id>/<name>
 ```

@@ -26,6 +26,12 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
+      - name: Build executable package
+        run: |
+          cd "${GITHUB_WORKSPACE}"
+          npm ci
+          npm run build
+          test -e ./dist/server.bin
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v2
         with:
