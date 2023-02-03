@@ -1,5 +1,6 @@
-const puppeteer = require('puppeteer');
-const DEBUG_MODE = process.env.NODE_ENV === 'development';
+const puppeteer = require('puppeteer-core');
+const { NODE_ENV, PUPPETEER_EXECUTABLE_PATH = '/usr/bin/chromium' } = process.env;
+const DEBUG_MODE = NODE_ENV === 'development';
 
 /**
  * @typedef {Object} Item
@@ -24,8 +25,8 @@ module.exports = async function (params) {
   const products = [];
 
   const browser = await puppeteer.launch(DEBUG_MODE
-    ? { headless: false, devtools: true, args: ['--start-maximized'], defaultViewport: null }
-    : { headless: true });
+    ? { executablePath: PUPPETEER_EXECUTABLE_PATH, headless: false, devtools: true, args: ['--start-maximized'], defaultViewport: null }
+    : { executablePath: PUPPETEER_EXECUTABLE_PATH, headless: true });
   let [page] = await browser.pages();
   if (!page) page = await browser.newPage();
   await page.setViewport({

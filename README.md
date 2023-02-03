@@ -5,6 +5,7 @@ Website search parser.
 ## How to run the server
 
 ```sh
+export PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium"
 npm start
 ```
 
