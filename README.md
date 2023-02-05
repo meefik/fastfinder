@@ -2,10 +2,15 @@
 
 Auto parts search engine.
 
-## How to run the server
+## Set browser path
 
 ```sh
 export PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium"
+```
+
+## How to run the server
+
+```sh
 npm start
 ```
 
@@ -18,21 +23,5 @@ npm run build
 ## Run tests
 
 ```sh
-export PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium"
 npm test
-```
-
-## Build Docker image
-
-```sh
-docker build --no-cache -f deploy/Dockerfile -t fastfinder .
-```
-
-## Run in Docker
-
-```sh
-docker run -d --name fastfinder --network host --cap-add=SYS_ADMIN \
-  --tmpfs /tmp \
-  -e "SESSION_KEY=secret" \
-  fastfinder
 ```

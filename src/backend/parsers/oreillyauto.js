@@ -5,10 +5,10 @@ const DEBUG_MODE = NODE_ENV === 'development';
 /**
  * @typedef {Object} Item
  * @property {string} parser Name of parser.
- * @property {string} image - Item image link.
- * @property {string} title - Item title.
- * @property {string} partNumber - Item part number.
- * @property {number} price - Price per item.
+ * @property {string} image Item image link.
+ * @property {string} title Item title.
+ * @property {string} partNumber Item part number.
+ * @property {number} price Price per item.
  * @property {string} location Store address.
  * @property {boolean} availability Availability in the store.
  * @property {boolean} fits Item fits chosen vehicle.

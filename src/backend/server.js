@@ -17,6 +17,7 @@ process.on('uncaughtException', function (err) {
   });
 });
 if (cluster.isMaster) {
+  // Shutdown process
   const shutdown = async function () {
     if (shutdown.executed) return;
     shutdown.executed = true;
@@ -71,7 +72,31 @@ if (cluster.isMaster) {
   const cors = require('cors');
   const db = require('db');
   const app = express();
-  // create server
+  // Shutdown worker
+  const shutdown = async function () {
+    if (shutdown.executed) return;
+    shutdown.executed = true;
+    const timeout = parseInt(nconf.get('timeout'));
+    if (timeout > 0) {
+      setTimeout(() => process.exit(1), timeout * 1000);
+    }
+    try {
+      await db?.disconnect();
+      await Promise.all([
+        new Promise(resolve => server ? server.close(resolve) : resolve()),
+        new Promise(resolve => httpServer ? httpServer.close(resolve) : resolve())
+      ]);
+      process.exit(0);
+    } catch (err) {
+      logger.log({
+        level: 'error',
+        label: 'server',
+        message: err.message
+      });
+      process.exit(1);
+    }
+  };
+  // Create web server
   const parseConf = function (val) {
     if (!val) return;
     try {
@@ -103,30 +128,7 @@ if (cluster.isMaster) {
       app
     )
     : require('http').Server(app);
-  // shutdown
-  const shutdown = async function () {
-    if (shutdown.executed) return;
-    shutdown.executed = true;
-    const timeout = parseInt(nconf.get('timeout'));
-    if (timeout > 0) {
-      setTimeout(() => process.exit(1), timeout * 1000);
-    }
-    try {
-      await db.disconnect();
-      await Promise.all([
-        new Promise(resolve => server.close(resolve))
-      ]);
-      process.exit(0);
-    } catch (err) {
-      logger.log({
-        level: 'error',
-        label: 'server',
-        message: err.message
-      });
-      process.exit(1);
-    }
-  };
-  // app server
+  // Setup app server
   app.enable('trust proxy');
   app.disable('x-powered-by');
   app.use(
@@ -157,9 +159,12 @@ if (cluster.isMaster) {
   app.use(express.urlencoded({ extended: true }));
   app.use(express.json());
   app.use(cors({ origin: true }));
-  // routing
+  // Routing
+  app.use('/ping', function (req, res) {
+    res.end('OK');
+  });
   app.use('/api', require('./routes'));
-  // static
+  // Static
   [nconf.get('static:dir'), path.join(__dirname, 'public')].forEach(function (dir) {
     if (!dir) return;
     app.use(
@@ -171,12 +176,12 @@ if (cluster.isMaster) {
       )
     );
   });
-  // default router
+  // Default router
   app.use(function (req, res, next) {
     res.status(404);
     next();
   });
-  // error handler
+  // Error handler
   app.use(function (err, req, res, next) {
     // fallback to default node handler
     if (res.headersSent) {
@@ -192,7 +197,7 @@ if (cluster.isMaster) {
     }
     res.json({ name: err.name, message: err.message, code: err.code });
   });
-  // run server
+  // Run server
   server.once('close', function () {
     logger.log({
       level: 'info',
@@ -215,6 +220,42 @@ if (cluster.isMaster) {
       message: `Listening on ${address.address}:${address.port}`
     });
   });
+  // HTTP web server
+  let httpServer;
+  if (protocol === 'https' && nconf.get('http:port')) {
+    const http = require('http');
+    httpServer = http.createServer(async function (req, res) {
+      // ACME HTTP validation (from directory)
+      // https://letsencrypt.org/docs/challenge-types/#http-01-challenge
+      if (nconf.get('http:webroot') && /^\/\.well-known\/acme-challenge\//.test(req.url)) {
+        return fs.readFile(path.join(nconf.get('http:webroot'), req.url), (err, data) => {
+          if (err) {
+            res.writeHead(404, {
+              'Content-Type': 'text/plain'
+            }).end('Not Found');
+          } else {
+            res.writeHead(200, {
+              'Content-Length': Buffer.byteLength(data),
+              'Content-Type': 'text/plain'
+            }).end(data);
+          }
+        });
+      }
+      // Redirect from http to https
+      const port = nconf.get('port');
+      res.writeHead(301, {
+        Location: `https://${req.headers.host}${port === '443' ? '' : ':' + port}${req.url}`
+      }).end();
+    });
+    httpServer.listen(nconf.get('http:port'), nconf.get('host'), function () {
+      const address = this.address();
+      logger.log({
+        level: 'info',
+        label: 'server',
+        message: `HTTP listening on ${address.address}:${address.port}`
+      });
+    });
+  }
   // Process termination
   process.once('SIGTERM', shutdown);
   // Ctrl+C

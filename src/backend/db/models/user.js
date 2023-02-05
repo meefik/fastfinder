@@ -5,36 +5,29 @@ const jwt = require('jsonwebtoken');
 const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({
-  // Идентификатор пользователя
   username: {
     type: String,
     require: true
   },
-  // Запрещен вход
   locked: {
     type: Boolean
   },
-  // Хэш пароля
   hashedPassword: {
     type: String,
     select: false
   },
-  // Соль для пароля
   salt: {
     type: String,
     select: false
   },
-  // Роль пользователя
   role: {
     type: String,
     default: 'user',
     enum: ['user', 'admin']
   },
-  // Отображаемое имя пользователя
   nickname: {
     type: String
   },
-  // Язык интерфейса
   lang: {
     type: String,
     set (value) {
@@ -42,21 +35,16 @@ const UserSchema = new Schema({
       return ['en', 'ru'].includes(value) ? value : 'en';
     }
   },
-  // Время создания записи
   createdAt: {
     type: Date,
     default: Date.now
   },
-  // Дата последнего входа
   loggedAt: {
-    type: Date,
-    index: true
+    type: Date
   },
-  // IP-адрес
   ipaddress: {
     type: String
   },
-  // User-Agent
   useragent: {
     type: String
   }
@@ -110,10 +98,10 @@ UserSchema.methods.validPassword = function (password) {
 };
 
 /**
- * Получить токен сессии для указанной полезной нагрузки.
+ * Get the session token for the specified payload.
  *
- * @param {*} payload Полезная нагрузка JWT.
- * @returns {Object} Возврат результата.
+ * @param {*} payload JWT payload.
+ * @returns {Object}
  */
 UserSchema.statics.getToken = function (payload = {}) {
   const expires = parseInt(nconf.get('session:expires')) * 60;
@@ -132,9 +120,9 @@ UserSchema.statics.getToken = function (payload = {}) {
 };
 
 /**
- * Авторизация по логину и паролю.
+ * Login and password authorization.
  *
- * @param {Object} data Профиль пользователя.
+ * @param {Object} data Profile data.
  * @returns {Promise}
  */
 UserSchema.statics.logIn = async function (data) {

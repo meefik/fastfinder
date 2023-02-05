@@ -20,5 +20,9 @@ module.exports = {
   session: {
     key: 'secret',
     expires: 6 * 60 // minutes
+  },
+  http: {
+    // port: 80,
+    // webroot: '/etc/acme/webroot'
   }
 };

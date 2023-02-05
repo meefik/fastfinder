@@ -3,25 +3,30 @@
 ## Build image
 
 ```sh
-docker build -f deploy/Dockerfile -t public.ecr.aws/<id>/<name> .
+docker build --no-cache -f deploy/Dockerfile -t ghcr.io/meefik/fastfinder:latest .
 ```
 
-## Push image to AWS repository
+## Push image to GutHub Packages registry
 
 ```sh
-aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin public.ecr.aws/<id>
-docker push public.ecr.aws/<id>/<name>
+docker login ghcr.io -u USERNAME
+docker push ghcr.io/meefik/fastfinder:latest
 ```
 
-See [AWS CLI Quick setup](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-quickstart.html)
+See [Working with the Container registry](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry)
 
 ## Run container
 
 ```sh
-docker volume create cache
-docker run -d --name parser --restart always --cap-add=SYS_ADMIN \
+docker run -d --name fastfinder --restart always --cap-add=SYS_ADMIN \
   --tmpfs /tmp \
-  -p 3000:3000 \
+  -p 8443:443 \
+  -p 8080:80 \
+  -e "PORT=8443" \
+  -e "HTTP_PORT=8080" \
   -e "SESSION_KEY=secret" \
-  public.ecr.aws/<id>/<name>
+  -e "MONGO_URI=mongodb://admin:secret@localhost:27017/fastfinder?authSource=admin" \
+  -e "SSL_KEY=-----BEGIN RSA PRIVATE KEY-----\n..." \
+  -e "SSL_CERT=-----BEGIN CERTIFICATE-----\n..." \
+  ghcr.io/meefik/fastfinder:latest
 ```

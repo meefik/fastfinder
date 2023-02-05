@@ -1,0 +1,60 @@
+version: "3.9"
+services:
+  mongo:
+    image: mongo:latest
+    restart: always
+    network_mode: bridge
+    #ports:
+    #  - "0.0.0.0:27017:27017/tcp"
+    volumes:
+      - db:/data/db
+      - configdb:/data/configdb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_SECRET:-secret}
+  acme:
+    image: goacme/lego:latest
+    network_mode: bridge
+    ports:
+      - "0.0.0.0:80:80/tcp"
+    volumes:
+      - acme:/.lego
+    entrypoint: |
+      sh -cxe 'test -n "${DOMAIN_NAME}" || exit 1
+      test -e /.lego/webroot || mkdir -p /.lego/webroot
+      if [ -e "/.lego/certificates/${DOMAIN_NAME}.key" ]
+      then
+        exec /usr/bin/lego --domains="${DOMAIN_NAME}" --email="admin@${DOMAIN_NAME}" --accept-tos --key-type=rsa2048 --http --http.webroot /.lego/webroot renew --days 15
+      else
+        exec /usr/bin/lego --domains="${DOMAIN_NAME}" --email="admin@${DOMAIN_NAME}" --accept-tos --key-type=rsa2048 --http run
+      fi'
+  node:
+    depends_on:
+      - acme
+      - mongo
+    image: ghcr.io/meefik/fastfinder:latest
+    restart: always
+    network_mode: bridge
+    links:
+      - mongo
+    ports:
+      - "0.0.0.0:8443:443/tcp"
+      - "0.0.0.0:8080:80/tcp"
+    volumes:
+      - acme:/etc/acme
+    cap_add:
+      - SYS_ADMIN
+    environment:
+      PORT: 8443
+      HTTP_PORT: 8080
+      HTTP_WEBROOT: /etc/acme/webroot
+      SESSION_KEY: ${SESSION_KEY:-secret}
+      MONGO_URI: mongodb://admin:${MONGO_SECRET:-secret}@mongo:27017/fastfinder?authSource=admin
+      #SSL_KEY: -----BEGIN RSA PRIVATE KEY-----\n...
+      #SSL_CERT: -----BEGIN CERTIFICATE-----\n...
+      SSL_KEY: /etc/acme/certificates/${DOMAIN_NAME:-localhost}.key
+      SSL_CERT: /etc/acme/certificates/${DOMAIN_NAME:-localhost}.crt
+volumes:
+  db: {}
+  configdb: {}
+  acme: {}
