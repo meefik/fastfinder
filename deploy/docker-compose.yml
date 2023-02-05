@@ -30,16 +30,18 @@ services:
       fi'
   node:
     depends_on:
-      - acme
-      - mongo
+      mongo:
+        condition: service_started
+      acme:
+        condition: service_completed_successfully
     image: ghcr.io/meefik/fastfinder:latest
     restart: always
     network_mode: bridge
     links:
       - mongo
     ports:
-      - "0.0.0.0:8443:443/tcp"
-      - "0.0.0.0:8080:80/tcp"
+      - "0.0.0.0:443:8443/tcp"
+      - "0.0.0.0:80:8080/tcp"
     volumes:
       - acme:/etc/acme
     cap_add:

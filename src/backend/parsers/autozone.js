@@ -159,9 +159,8 @@ module.exports = async function (params) {
         });
       }
     }
-  } catch (err) {
+  } finally {
     await browser.close();
-    throw err;
   }
 
   const partNumberRe = new RegExp(`^${params.partNumber}`, 'i');
