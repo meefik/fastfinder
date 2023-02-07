@@ -89,9 +89,9 @@ module.exports = async function (params) {
     if (await page.$eval('.fas-autocomplete__button', el => el.disabled)) {
       throw new Error('ZIP not found');
     }
-    // await page.waitForFunction(() => {
-    //   return !document.querySelector('.fas-autocomplete__button').disabled;
-    // });
+    await page.waitForFunction(() => {
+      return !document.querySelector('.fas-autocomplete__button').disabled;
+    });
     await page.waitForSelector('.fas-autocomplete__button');
     await page.$eval('.fas-autocomplete__button', el => el.click());
     await page.waitForFunction(() => {
@@ -106,6 +106,9 @@ module.exports = async function (params) {
     }, {}, noStoreSelectedText);
 
     // read product info from list
+    if (await page.$('.plp-no-results-header')) {
+      throw new Error('No parts found with part number provided');
+    }
     try {
       await page.waitForSelector('.availability', { visible: true });
     } catch (err) {}
