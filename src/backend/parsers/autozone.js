@@ -95,6 +95,9 @@ module.exports = async function (params) {
     // search by part number
     await page.goto(`https://www.autozone.com/searchresult?searchText=${encodeURIComponent(params.partNumber)}`);
     await page.waitForSelector('h1[data-testid="search-results-thin-header"], h1[data-testid="product-title"]');
+    if (await page.$eval('h1[data-testid="search-results-thin-header"], h1[data-testid="product-title"]', el => el.textContent.trim() === '0 Results')) {
+      throw new Error('No parts found with part number provided');
+    }
 
     // go to the first category
     const categoryElement = await page.$('div[data-testid="search-result-list"] a');
