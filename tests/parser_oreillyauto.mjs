@@ -9,7 +9,7 @@ test('oreillyauto', async (_t) => {
     // model: 'F350 Super Duty P/U 2WD',
     // engine: '8 Cylinders 5 5.4L FI SOHC 330 CID'
     vin: '1FTSW21P75EA53447', // 1FTSW21P75EA53447 fdfgdfgdfgdfhddfsdgdfhdfhdfhdfhdhdh 1PTSR21P75EA53447
-    zip: '98264',
+    zip: '98264', // 1234 98264 12345
     partNumber: 'MGA49883'
   };
   try {

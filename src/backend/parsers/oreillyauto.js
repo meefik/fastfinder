@@ -37,6 +37,9 @@ module.exports = async function (params) {
     if (params.vin.length !== 17 || Array.from(params.vin).some((element) => ['Q', 'O', 'I'].includes(element))) {
       throw new Error('Invalid VIN');
     }
+    if (!/^\d{5}$/.test(params.zip)) {
+      throw new Error('Invalid US ZIP');
+    }
 
     let [page] = await browser.pages();
     if (!page) page = await browser.newPage();
@@ -82,9 +85,13 @@ module.exports = async function (params) {
     await page.$eval('[data-qa=header-find-a-store]', el => el.click());
     await page.waitForSelector('#find-a-store-search');
     await page.type('#find-a-store-search', params.zip);
-    await page.waitForFunction(() => {
-      return !document.querySelector('.fas-autocomplete__button').disabled;
-    });
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    if (await page.$eval('.fas-autocomplete__button', el => el.disabled)) {
+      throw new Error('ZIP not found');
+    }
+    // await page.waitForFunction(() => {
+    //   return !document.querySelector('.fas-autocomplete__button').disabled;
+    // });
     await page.waitForSelector('.fas-autocomplete__button');
     await page.$eval('.fas-autocomplete__button', el => el.click());
     await page.waitForFunction(() => {
