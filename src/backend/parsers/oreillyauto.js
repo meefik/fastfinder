@@ -33,6 +33,11 @@ module.exports = async function (params) {
     : { executablePath: PUPPETEER_EXECUTABLE_PATH, headless: true });
 
   try {
+    // check params are valid
+    if (params.vin.length !== 17 || Array.from(params.vin).some((element) => ['Q', 'O', 'I'].includes(element))) {
+      throw new Error('Invalid VIN');
+    }
+
     let [page] = await browser.pages();
     if (!page) page = await browser.newPage();
     await page.setViewport({
@@ -57,6 +62,10 @@ module.exports = async function (params) {
     await page.type('#vs-lookup-input', params.vin);
     await page.$eval('#vs-lookup-input', el => el.blur());
     await page.$eval('.lookup-form__submit', el => el.click());
+    await new Promise(resolve => setTimeout(resolve, 500));
+    if (await page.$eval('.lookup-form__error', el => el.textContent.trim().startsWith('Sorry'))) {
+      throw new Error('VIN not found');
+    }
     // wait for save the vehicle
     await page.waitForFunction(noCarSelectedText => {
       const carSelectedText = document.querySelector('[data-qa=header-vehicle-select] >span >span:nth-child(2) >span')?.textContent;
