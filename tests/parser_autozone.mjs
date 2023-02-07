@@ -8,8 +8,8 @@ test('autozone', async (_t) => {
     // make: 'Ford',
     // model: 'F350 Super Duty P/U 2WD',
     // engine: '8 Cylinders 5 5.4L FI SOHC 330 CID'
-    vin: '1FTSW21P75EA53447',
-    zip: '98264',
+    vin: '1FTSW21P75EA53447', // 1FTSW21P75EA53447 fdfgdfgdfgdfhddfsdgdfhdfhdfhdfhdhdh 1PTSR21P75EA53447
+    zip: '98264', // 1234 (invalid), 98264 (OK), 33333 (not found)
     // with subcategories
     // partNumber: 'H13XV'
     // single product

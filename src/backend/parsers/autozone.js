@@ -32,6 +32,14 @@ module.exports = async function (params) {
     : { executablePath: PUPPETEER_EXECUTABLE_PATH, headless: true });
 
   try {
+    // check params are valid
+    if (params.vin.length !== 17 || Array.from(params.vin).some((element) => ['Q', 'O', 'I'].includes(element))) {
+      throw new Error('Invalid VIN');
+    }
+    if (!/^\d{5}$/.test(params.zip)) {
+      throw new Error('Invalid US ZIP');
+    }
+
     let [page] = await browser.pages();
     if (!page) page = await browser.newPage();
     await page.setViewport({
@@ -57,13 +65,16 @@ module.exports = async function (params) {
     await page.$eval('#SearchInput', el => el.focus());
     await page.type('#SearchInput', params.zip);
     await page.$eval('button[data-testid="address-search-keyword"]', el => el.click());
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    if (await page.$('.az_rpb')) {
+      throw new Error('ZIP not found');
+    }
     await page.waitForSelector('button[data-testid="set-store-btn-0"]');
     await page.$eval('button[data-testid="set-store-btn-0"]', el => el.click());
     await page.waitForFunction(oldStoreName => {
       const newStoreName = document.querySelector('#nav_wrapper span[data-testid="store-name-text-top-header"]')?.textContent;
       return newStoreName && newStoreName !== oldStoreName;
     }, {}, oldStoreName);
-    // FIXME: Invalid ZIP or store not found
 
     // add vehicle by VIN
     await page.waitForSelector('#nav_wrapper button[data-testid="deskTopVehicle-menu-lg"]');
