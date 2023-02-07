@@ -85,9 +85,12 @@ module.exports = async function (params) {
     await page.type('#vinLookup', params.vin);
     await page.$eval('#vinLookup', el => el.blur());
     await page.$eval('button[data-testid="ymme-vin-lookup-button"]', el => el.click());
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    if (await page.$('#notificationAlert')) {
+      throw new Error('VIN not found');
+    }
     // wait for save the vehicle
     await page.waitForSelector('div[data-testid="vehicle-text"]');
-    // FIXME: Invalid VIN or not found
 
     // search by part number
     await page.goto(`https://www.autozone.com/searchresult?searchText=${encodeURIComponent(params.partNumber)}`);
