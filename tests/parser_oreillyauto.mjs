@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import pptr from '../src/backend/lib/pptr.js';
 import parser from '../src/backend/parsers/oreillyauto.js';
 
 test('oreillyauto', async (_t) => {
@@ -13,7 +14,7 @@ test('oreillyauto', async (_t) => {
     partNumber: 'MGA49883'
   };
   try {
-    const data = await parser(params);
+    const data = await pptr(parser, params);
     console.log('OUTPUT: ', data);
     assert.ok(data.length > 0, 'Not found');
   } catch (err) {
