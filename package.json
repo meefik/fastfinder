@@ -15,7 +15,7 @@
       "node_modules/**/*.mem"
     ],
     "targets": [
-      "node18-alpine-x64"
+      "node18-linux-x64"
     ]
   },
   "files": [

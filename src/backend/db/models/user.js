@@ -1,6 +1,6 @@
 const nconf = require('nconf');
 const mongoose = require('mongoose');
-const crypto = require('crypto');
+const crypto = require('node:crypto');
 const jwt = require('jsonwebtoken');
 const Schema = mongoose.Schema;
 

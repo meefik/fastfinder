@@ -1,6 +1,33 @@
+const http = require('node:http');
 const puppeteer = require('puppeteer-core');
 const { NODE_ENV, PUPPETEER_EXECUTABLE_PATH, PUPPETEER_BROWSER_URL } = process.env;
 const DEBUG_MODE = NODE_ENV === 'development';
+
+/**
+ * Replace hostname to IP address.
+ *
+ * @param {string} url Browser URL, e.g. http://localhost:9222.
+ * @returns {string}
+ */
+function resolveIpAddress (url) {
+  return new Promise((resolve, reject) => {
+    const { protocol, hostname, port } = new URL(url);
+    if (protocol !== 'http:') {
+      return reject(new Error('Protocol not supported'));
+    }
+    http.get({
+      hostname,
+      port,
+      path: '/',
+      agent: false
+    }, (res) => {
+      const ip = res.socket?.remoteAddress;
+      resolve(`${protocol}//${ip}:${port}`);
+    }).on('error', (err) => {
+      reject(err);
+    });
+  });
+}
 
 /**
  * @typedef {Object} Item
@@ -33,7 +60,7 @@ module.exports = async function (parser, params) {
     // Connect to browser
     browser = PUPPETEER_BROWSER_URL
       ? await puppeteer.connect({
-        browserURL: PUPPETEER_BROWSER_URL
+        browserURL: await resolveIpAddress(PUPPETEER_BROWSER_URL)
       })
       : await puppeteer.launch(DEBUG_MODE
         ? { executablePath: PUPPETEER_EXECUTABLE_PATH, headless: false, devtools: true }

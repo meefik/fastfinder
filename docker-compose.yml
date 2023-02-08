@@ -1,0 +1,48 @@
+version: "3.9"
+services:
+  mongo:
+    image: mongo:latest
+    restart: always
+    network_mode: bridge
+    #ports:
+    #  - "0.0.0.0:27017:27017/tcp"
+    volumes:
+      - db:/data/db
+      - configdb:/data/configdb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_SECRET:-secret}
+  chromium:
+    image: ghcr.io/meefik/chromium:latest
+    build: ./chromium
+    restart: always
+    network_mode: bridge
+    ports:
+      - "0.0.0.0:9222:9222/tcp"
+  fastfinder:
+    image: ghcr.io/meefik/fastfinder:latest
+    build:
+      context: ..
+      dockerfile: ./deploy/fastfinder/Dockerfile
+    restart: always
+    network_mode: bridge
+    depends_on:
+      mongo:
+        condition: service_started
+      chromium:
+        condition: service_started
+    links:
+      - mongo
+      - chromium
+    ports:
+      - "0.0.0.0:3000:3000/tcp"
+    environment:
+      PORT: 3000
+      SESSION_KEY: ${SESSION_KEY:-secret}
+      MONGO_URI: mongodb://admin:${MONGO_SECRET:-secret}@mongo:27017/fastfinder?authSource=admin
+      #SSL_KEY: -----BEGIN RSA PRIVATE KEY-----\n...
+      #SSL_CERT: -----BEGIN CERTIFICATE-----\n...
+      PUPPETEER_BROWSER_URL: http://chromium:9222
+volumes:
+  db: {}
+  configdb: {}

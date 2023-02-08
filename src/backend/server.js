@@ -6,7 +6,7 @@ nconf.env({
   parseValues: true
 });
 nconf.defaults(require('config'));
-const cluster = require('cluster');
+const cluster = require('node:cluster');
 const logger = require('lib/logger');
 // Error handling
 process.on('uncaughtException', function (err) {
@@ -65,8 +65,8 @@ if (cluster.isMaster) {
   process.once('SIGUSR2', shutdown);
 } else if (cluster.isWorker) {
   const express = require('express');
-  const fs = require('fs');
-  const path = require('path');
+  const fs = require('node:fs');
+  const path = require('node:path');
   const morgan = require('morgan');
   const compression = require('compression');
   const cors = require('cors');
@@ -119,7 +119,7 @@ if (cluster.isMaster) {
     ? 'https'
     : 'http';
   const server = (protocol === 'https')
-    ? require('https').Server(
+    ? require('node:https').Server(
       {
         key: parseConf(nconf.get('ssl:key')),
         cert: parseConf(nconf.get('ssl:cert')),
@@ -127,7 +127,7 @@ if (cluster.isMaster) {
       },
       app
     )
-    : require('http').Server(app);
+    : require('node:http').Server(app);
   // Setup app server
   app.enable('trust proxy');
   app.disable('x-powered-by');
@@ -223,7 +223,7 @@ if (cluster.isMaster) {
   // HTTP web server
   let httpServer;
   if (protocol === 'https' && nconf.get('http:port')) {
-    const http = require('http');
+    const http = require('node:http');
     httpServer = http.createServer(async function (req, res) {
       // ACME HTTP validation (from directory)
       // https://letsencrypt.org/docs/challenge-types/#http-01-challenge
