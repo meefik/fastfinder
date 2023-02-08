@@ -65,8 +65,10 @@ module.exports = async function (params) {
     await page.$eval('#SearchInput', el => el.focus());
     await page.type('#SearchInput', params.zip);
     await page.$eval('button[data-testid="address-search-keyword"]', el => el.click());
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    if (await page.$('.az_rpb')) {
+    await page.waitForFunction(() => {
+      return document.querySelector('div[data-testid="my-store-instructions"]') === null;
+    });
+    if (!await page.$('button[data-testid="set-store-btn-0"]')) {
       throw new Error('ZIP not found');
     }
     await page.waitForSelector('button[data-testid="set-store-btn-0"]');
@@ -85,7 +87,9 @@ module.exports = async function (params) {
     await page.type('#vinLookup', params.vin);
     await page.$eval('#vinLookup', el => el.blur());
     await page.$eval('button[data-testid="ymme-vin-lookup-button"]', el => el.click());
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await page.waitForFunction(() => {
+      return document.querySelector('button[data-testid="ymme-vin-lookup-button"] div') === null;
+    });
     if (await page.$('#notificationAlert')) {
       throw new Error('VIN not found');
     }
@@ -95,9 +99,6 @@ module.exports = async function (params) {
     // search by part number
     await page.goto(`https://www.autozone.com/searchresult?searchText=${encodeURIComponent(params.partNumber)}`);
     await page.waitForSelector('h1[data-testid="search-results-thin-header"], h1[data-testid="product-title"]');
-    if (await page.$eval('h1[data-testid="search-results-thin-header"], h1[data-testid="product-title"]', el => el.textContent.trim() === '0 Results')) {
-      throw new Error('No parts found with part number provided');
-    }
 
     // go to the first category
     const categoryElement = await page.$('div[data-testid="search-result-list"] a');
