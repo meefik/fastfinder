@@ -6,6 +6,7 @@ const { Strategy: LocalStrategy } = require('passport-local');
 const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
 const User = require('db/models/user');
 const pptr = require('lib/pptr');
+const logger = require('lib/logger');
 const parserAutozone = require('parsers/autozone');
 const parserOreillyauto = require('parsers/oreillyauto');
 
@@ -98,11 +99,19 @@ router.use('/search', isAuth, function (req, res, next) {
     partNumber: req.body.partNumber
   };
   Promise.all([
-    pptr(parserAutozone, params),
-    pptr(parserOreillyauto, params)
+    pptr(parserAutozone, params).catch(err => logger.log({
+      level: 'error',
+      label: 'autozone',
+      message: err.message
+    })),
+    pptr(parserOreillyauto, params).catch(err => logger.log({
+      level: 'error',
+      label: 'oreillyauto',
+      message: err.message
+    }))
   ]).then(data => {
     const output = data.reduce((arr, item) => {
-      arr.push(...item);
+      if (Array.isArray(item)) arr.push(...item);
       return arr;
     }, []).map((item, index) => {
       item.id = index + 1;
