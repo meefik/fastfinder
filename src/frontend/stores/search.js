@@ -5,7 +5,7 @@ function getSessionToken () {
 }
 
 export async function searchProducts (params) {
-  const res = await fetch('/api/parser', {
+  const res = await fetch('/api/search', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

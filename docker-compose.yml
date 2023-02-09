@@ -12,26 +12,13 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_SECRET:-secret}
-  acme:
-    image: ghcr.io/meefik/acme:latest
-    build: ./acme
-    network_mode: bridge
-    ports:
-      - "0.0.0.0:80:80/tcp"
-    volumes:
-      - acme:/.lego
-    environment:
-      ACME_DOMAIN: ${DOMAIN_NAME:-localhost}
-      ACME_EMAIL: admin@${DOMAIN_NAME:-localhost}
-      ACME_DAYS: 15
-      ACME_WEBROOT: /.lego/webroot
   chromium:
     image: ghcr.io/meefik/chromium:latest
     build: ./chromium
     restart: always
     network_mode: bridge
-    #ports:
-    #  - "0.0.0.0:9222:9222/tcp"
+    ports:
+      - "0.0.0.0:9222:9222/tcp"
   fastfinder:
     image: ghcr.io/meefik/fastfinder:latest
     build:
@@ -44,28 +31,18 @@ services:
         condition: service_started
       chromium:
         condition: service_started
-      acme:
-        condition: service_completed_successfully
     links:
       - mongo
       - chromium
     ports:
-      - "0.0.0.0:443:8443/tcp"
-      - "0.0.0.0:80:8080/tcp"
-    volumes:
-      - acme:/etc/acme:ro
+      - "0.0.0.0:3000:3000/tcp"
     environment:
-      PORT: 8443
-      HTTP_PORT: 8080
-      HTTP_WEBROOT: /etc/acme/webroot
+      PORT: 3000
       SESSION_KEY: ${SESSION_KEY:-secret}
       MONGO_URI: mongodb://admin:${MONGO_SECRET:-secret}@mongo:27017/fastfinder?authSource=admin
       #SSL_KEY: -----BEGIN RSA PRIVATE KEY-----\n...
       #SSL_CERT: -----BEGIN CERTIFICATE-----\n...
-      SSL_KEY: /etc/acme/certificates/${DOMAIN_NAME:-localhost}.key
-      SSL_CERT: /etc/acme/certificates/${DOMAIN_NAME:-localhost}.crt
       PUPPETEER_BROWSER_URL: http://chromium:9222
 volumes:
   db: {}
   configdb: {}
-  acme: {}

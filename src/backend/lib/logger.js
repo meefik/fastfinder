@@ -1,4 +1,4 @@
-const cluster = require('cluster');
+const cluster = require('node:cluster');
 const { createLogger, format, transports } = require('winston');
 const { combine, timestamp, colorize, printf } = format;
 

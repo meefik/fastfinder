@@ -5,6 +5,8 @@ const passport = require('passport');
 const { Strategy: LocalStrategy } = require('passport-local');
 const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
 const User = require('db/models/user');
+const pptr = require('lib/pptr');
+const logger = require('lib/logger');
 const parserAutozone = require('parsers/autozone');
 const parserOreillyauto = require('parsers/oreillyauto');
 
@@ -89,19 +91,27 @@ router.post('/login',
     res.json({ user: req.user, token });
   });
 
-// Endpoint to run parsers
-router.use('/parser', isAuth, function (req, res, next) {
+// Endpoint to run search
+router.use('/search', isAuth, function (req, res, next) {
   const params = {
     vin: req.body.vin,
     zip: req.body.zip,
     partNumber: req.body.partNumber
   };
   Promise.all([
-    parserAutozone(params),
-    parserOreillyauto(params)
+    pptr(parserAutozone, params).catch(err => logger.log({
+      level: 'error',
+      label: 'autozone',
+      message: err.message
+    })),
+    pptr(parserOreillyauto, params).catch(err => logger.log({
+      level: 'error',
+      label: 'oreillyauto',
+      message: err.message
+    }))
   ]).then(data => {
     const output = data.reduce((arr, item) => {
-      arr.push(...item);
+      if (Array.isArray(item)) arr.push(...item);
       return arr;
     }, []).map((item, index) => {
       item.id = index + 1;

@@ -45,4 +45,4 @@ jobs:
           tags: |
             ${{ env.REGISTRY_NAME }}/${{ github.repository }}:${{ env.RELEASE_VERSION }}
             ${{ env.REGISTRY_NAME }}/${{ github.repository }}:latest
-          file: ./deploy/Dockerfile
+          file: ./deploy/fastfinder/Dockerfile
