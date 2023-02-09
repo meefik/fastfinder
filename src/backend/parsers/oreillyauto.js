@@ -65,8 +65,10 @@ module.exports = async function (params) {
     await page.type('#vs-lookup-input', params.vin);
     await page.$eval('#vs-lookup-input', el => el.blur());
     await page.$eval('.lookup-form__submit', el => el.click());
-    await new Promise(resolve => setTimeout(resolve, 500));
-    if (await page.$eval('.lookup-form__error', el => el.textContent.trim().startsWith('Sorry'))) {
+    await page.waitForFunction(() => {
+      return document.querySelector('.lookup-form__submit div') === null;
+    });
+    if (await page.$('.lookup-form__submit')) {
       throw new Error('VIN not found');
     }
     // wait for save the vehicle
@@ -86,6 +88,7 @@ module.exports = async function (params) {
     await page.waitForSelector('#find-a-store-search');
     await page.type('#find-a-store-search', params.zip);
     await new Promise(resolve => setTimeout(resolve, 1000));
+    // FIXME: change waiting for timeout to contextual wait
     if (await page.$eval('.fas-autocomplete__button', el => el.disabled)) {
       throw new Error('ZIP not found');
     }
