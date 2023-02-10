@@ -24,9 +24,7 @@ module.exports = async function (page, params) {
   await page.$eval('#SearchInput', el => el.focus());
   await page.type('#SearchInput', params.zip);
   await page.$eval('button[data-testid="address-search-keyword"]', el => el.click());
-  await page.waitForFunction(() => {
-    return document.querySelector('div[data-testid="my-store-instructions"]') === null;
-  });
+  await page.waitForSelector('div[data-testid="my-store-instructions"]', { hidden: true });
   if (!await page.$('button[data-testid="set-store-btn-0"]')) {
     throw new Error('ZIP not found');
   }
@@ -46,9 +44,8 @@ module.exports = async function (page, params) {
   await page.type('#vinLookup', params.vin);
   await page.$eval('#vinLookup', el => el.blur());
   await page.$eval('button[data-testid="ymme-vin-lookup-button"]', el => el.click());
-  await page.waitForFunction(() => {
-    return document.querySelector('button[data-testid="ymme-vin-lookup-button"] div') === null;
-  });
+  await page.waitForSelector('button[data-testid="ymme-vin-lookup-button"] div');
+  await page.waitForSelector('button[data-testid="ymme-vin-lookup-button"] div', { hidden: true });
   if (await page.$('#notificationAlert')) {
     throw new Error('VIN not found');
   }
