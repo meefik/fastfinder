@@ -1,14 +1,6 @@
 module.exports = async function (page, params) {
   const products = [];
 
-  // check params are valid
-  if (params.vin.length !== 17 || Array.from(params.vin).some((element) => ['Q', 'O', 'I'].includes(element))) {
-    throw new Error('Invalid VIN');
-  }
-  if (!/^\d{5}$/.test(params.zip)) {
-    throw new Error('Invalid US ZIP');
-  }
-
   await page.goto('https://www.autozone.com/parts');
 
   // hide ads
