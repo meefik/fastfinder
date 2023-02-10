@@ -1,7 +1,6 @@
 module.exports = async function (page, params) {
   const products = [];
 
-  // fix for headless https://github.com/puppeteer/puppeteer/issues/665
   await page.goto('https://www.oreillyauto.com/shop/b');
 
   // choose vehicle
@@ -16,6 +15,10 @@ module.exports = async function (page, params) {
   await page.type('#vs-lookup-input', params.vin);
   await page.$eval('#vs-lookup-input', el => el.blur());
   await page.$eval('.lookup-form__submit', el => el.click());
+  await page.waitForSelector('.lookup-form__submit div', { hidden: true });
+  if (await page.$('.lookup-form__submit')) {
+    throw new Error('VIN not found');
+  }
   // wait for save the vehicle
   await page.waitForFunction(noCarSelectedText => {
     const carSelectedText = document.querySelector('[data-qa=header-vehicle-select] >span >span:nth-child(2) >span')?.textContent;
@@ -32,14 +35,11 @@ module.exports = async function (page, params) {
   await page.$eval('[data-qa=header-find-a-store]', el => el.click());
   await page.waitForSelector('#find-a-store-search');
   await page.type('#find-a-store-search', params.zip);
-  await page.waitForFunction(() => {
-    return !document.querySelector('.fas-autocomplete__button').disabled;
-  });
-  await page.waitForSelector('.fas-autocomplete__button');
+  await page.waitForSelector('#find-a-store-search-suggestions');
+  if (!await page.$('ul#find-a-store-search-suggestions > li')) {
+    throw new Error('ZIP not found');
+  }
   await page.$eval('.fas-autocomplete__button', el => el.click());
-  await page.waitForFunction(() => {
-    return document.querySelector('.fas-autocomplete__button').disabled;
-  });
   await page.waitForSelector('.fas-search-results__list >li:nth-child(1) button');
   const storeAddress = await page.$eval('.fas-search-results__list >li:nth-child(1) .store-info__text-wrap p:nth-child(1)', el => el.textContent?.replace('  ', ', ').trim());
   await page.$eval('.fas-search-results__list >li:nth-child(1) button', el => el.click());
@@ -49,6 +49,9 @@ module.exports = async function (page, params) {
   }, {}, noStoreSelectedText);
 
   // read product info from list
+  if (await page.$('.plp-no-results-header')) {
+    throw new Error('No parts found with part number provided');
+  }
   try {
     await page.waitForSelector('.availability', { visible: true });
   } catch (err) {}

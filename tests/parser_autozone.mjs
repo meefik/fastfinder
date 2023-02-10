@@ -9,9 +9,9 @@ test('autozone', async (_t) => {
     // make: 'Ford',
     // model: 'F350 Super Duty P/U 2WD',
     // engine: '8 Cylinders 5 5.4L FI SOHC 330 CID'
-    vin: '1FTSW21P75EA53447',
-    zip: '98264',
-    partNumber: 'S9549XL' // 'S2XL', 'H13XV'
+    vin: '1FTSW21P75EA53447', // '2HKRM4H73CH623544' (OK), 'fdfgdfgdfgdfhddfsdgdfhdfhdfhdf' (invalid), '1PTSR21P75EA53447' (not found)
+    zip: '98264', // '1234' (invalid), '98264' (OK), '33333' (not found)
+    partNumber: 'S9549XL' // 'S2XL', 'H13XV', 'S9549XL' (OK), 'yufkuyfkuf' (not found), 'AL9432X' (OK)
   };
   try {
     const data = await pptr(parser, params);

@@ -57,6 +57,14 @@ module.exports = async function (parser, params) {
   let products = [];
 
   try {
+    // check params are valid
+    if (params.vin.length !== 17 || Array.from(params.vin).some((element) => ['Q', 'O', 'I'].includes(element))) {
+      throw new Error('Invalid VIN');
+    }
+    if (!/^\d{5}$/.test(params.zip)) {
+      throw new Error('Invalid US ZIP');
+    }
+
     // Connect to browser
     browser = PUPPETEER_BROWSER_URL
       ? await puppeteer.connect({

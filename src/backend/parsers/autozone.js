@@ -1,8 +1,6 @@
 module.exports = async function (page, params) {
   const products = [];
 
-  // fix for headless https://github.com/puppeteer/puppeteer/issues/665
-  await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36');
   await page.goto('https://www.autozone.com/parts');
 
   // hide ads
@@ -18,13 +16,16 @@ module.exports = async function (page, params) {
   await page.$eval('#SearchInput', el => el.focus());
   await page.type('#SearchInput', params.zip);
   await page.$eval('button[data-testid="address-search-keyword"]', el => el.click());
+  await page.waitForSelector('div[data-testid="my-store-instructions"]', { hidden: true });
+  if (!await page.$('button[data-testid="set-store-btn-0"]')) {
+    throw new Error('ZIP not found');
+  }
   await page.waitForSelector('button[data-testid="set-store-btn-0"]');
   await page.$eval('button[data-testid="set-store-btn-0"]', el => el.click());
   await page.waitForFunction(oldStoreName => {
     const newStoreName = document.querySelector('#nav_wrapper span[data-testid="store-name-text-top-header"]')?.textContent;
     return newStoreName && newStoreName !== oldStoreName;
   }, {}, oldStoreName);
-  // FIXME: Invalid ZIP or store not found
 
   // add vehicle by VIN
   await page.waitForSelector('#nav_wrapper button[data-testid="deskTopVehicle-menu-lg"]');
@@ -35,9 +36,13 @@ module.exports = async function (page, params) {
   await page.type('#vinLookup', params.vin);
   await page.$eval('#vinLookup', el => el.blur());
   await page.$eval('button[data-testid="ymme-vin-lookup-button"]', el => el.click());
+  await page.waitForSelector('button[data-testid="ymme-vin-lookup-button"] div');
+  await page.waitForSelector('button[data-testid="ymme-vin-lookup-button"] div', { hidden: true });
+  if (await page.$('#notificationAlert')) {
+    throw new Error('VIN not found');
+  }
   // wait for save the vehicle
   await page.waitForSelector('div[data-testid="vehicle-text"]');
-  // FIXME: Invalid VIN or not found
 
   // search by part number
   await page.goto(`https://www.autozone.com/searchresult?searchText=${encodeURIComponent(params.partNumber)}`);
