@@ -3,9 +3,12 @@ module.exports = async function (page, params) {
 
   await page.goto('https://www.oreillyauto.com/shop/b');
 
+  // hide ads
+  await page.addStyleTag({ content: '.__fsr {display:none!important;}' });
+
   // choose vehicle
   await page.waitForSelector('[data-qa=header-vehicle-select]');
-  const noCarSelectedText = await page.$eval('[data-qa=header-vehicle-select] >span >span:nth-child(2) >span', el => el.textContent);
+  const noCarSelectedText = await page.$eval('[data-qa=header-vehicle-select] .header-icon-button-text__bottom span', el => el.textContent);
   await page.$eval('[data-qa=header-vehicle-select]', el => el.click());
   // vehicle: set VIN
   // VIN example: https://vingenerator.org
@@ -21,17 +24,18 @@ module.exports = async function (page, params) {
   }
   // wait for save the vehicle
   await page.waitForFunction(noCarSelectedText => {
-    const carSelectedText = document.querySelector('[data-qa=header-vehicle-select] >span >span:nth-child(2) >span')?.textContent;
+    const carSelectedText = document.querySelector('[data-qa=header-vehicle-select] .header-icon-button-text__bottom span')?.textContent;
     return carSelectedText && carSelectedText !== noCarSelectedText;
   }, {}, noCarSelectedText);
 
   // search by part number
   const url = await page.$eval('form.header-search__form', el => el.action);
+  page.on('dialog', dialog => dialog.dismiss());
   await page.goto(`${url}?q=${encodeURIComponent(params.partNumber)}`);
 
   // add location by zip code (first store found)
   await page.waitForSelector('[data-qa=header-find-a-store]');
-  const noStoreSelectedText = await page.$eval('[data-qa=header-find-a-store] >span >span:nth-child(2) >span', el => el.textContent);
+  const noStoreSelectedText = await page.$eval('[data-qa=header-find-a-store] .header-icon-button-text__bottom span', el => el.textContent);
   await page.$eval('[data-qa=header-find-a-store]', el => el.click());
   await page.waitForSelector('#find-a-store-search');
   await page.type('#find-a-store-search', params.zip);
@@ -40,11 +44,17 @@ module.exports = async function (page, params) {
     throw new Error('ZIP not found');
   }
   await page.$eval('.fas-autocomplete__button', el => el.click());
-  await page.waitForSelector('.fas-search-results__list >li:nth-child(1) button');
-  const storeAddress = await page.$eval('.fas-search-results__list >li:nth-child(1) .store-info__text-wrap p:nth-child(1)', el => el.textContent?.replace('  ', ', ').trim());
-  await page.$eval('.fas-search-results__list >li:nth-child(1) button', el => el.click());
+  await page.waitForSelector('.fas-list-item__confirm-button', { hidden: true });
+  await page.waitForSelector('.fas-search-results__list .fas-list-item:nth-child(1) button');
+  let storeAddress;
+  if (await page.$('.fas-search-results__list .pin-number')) {
+    storeAddress = await page.$eval('.fas-search-results__list .store-info__address', el => el.textContent?.replace('  ', ', ').trim());
+  } else {
+    storeAddress = await page.$eval('.fas-search-results__list p', el => el.textContent?.replace('  ', ', ').trim());
+  }
+  await page.$eval('.fas-search-results__list .fas-list-item:nth-child(1) button', el => el.click());
   await page.waitForFunction(noStoreSelectedText => {
-    const storeSelectedText = document.querySelector('[data-qa=header-find-a-store] >span >span:nth-child(2) >span')?.textContent;
+    const storeSelectedText = document.querySelector('[data-qa=header-find-a-store] .header-icon-button-text__bottom span')?.textContent;
     return storeSelectedText && storeSelectedText !== noStoreSelectedText;
   }, {}, noStoreSelectedText);
 
