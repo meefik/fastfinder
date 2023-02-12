@@ -2,13 +2,13 @@
 
 ## Build and push images
 
-### Build all images for YC
+### Build all images
 
 ```sh
 docker compose build --pull
 ```
 
-### Build the specified image for YC
+### Build the specified image
 
 ```sh
 docker compose build --pull <service>
