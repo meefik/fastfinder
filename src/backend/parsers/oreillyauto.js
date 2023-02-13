@@ -7,6 +7,7 @@ module.exports = async function (page, params) {
   await page.addStyleTag({ content: '.__fsr {display:none!important;}' });
 
   // choose vehicle
+  /*
   await page.waitForSelector('[data-qa=header-vehicle-select]');
   const noCarSelectedText = await page.$eval('[data-qa=header-vehicle-select] .header-icon-button-text__bottom span', el => el.textContent);
   await page.$eval('[data-qa=header-vehicle-select]', el => el.click());
@@ -27,11 +28,7 @@ module.exports = async function (page, params) {
     const carSelectedText = document.querySelector('[data-qa=header-vehicle-select] .header-icon-button-text__bottom span')?.textContent;
     return carSelectedText && carSelectedText !== noCarSelectedText;
   }, {}, noCarSelectedText);
-
-  // search by part number
-  const url = await page.$eval('form.header-search__form', el => el.action);
-  page.on('dialog', dialog => dialog.dismiss());
-  await page.goto(`${url}?q=${encodeURIComponent(params.partNumber)}`);
+  */
 
   // add location by zip code (first store found)
   await page.waitForSelector('[data-qa=header-find-a-store]');
@@ -57,6 +54,16 @@ module.exports = async function (page, params) {
     const storeSelectedText = document.querySelector('[data-qa=header-find-a-store] .header-icon-button-text__bottom span')?.textContent;
     return storeSelectedText && storeSelectedText !== noStoreSelectedText;
   }, {}, noStoreSelectedText);
+
+  // FIXME: Access denied for goto /searh?q=
+  // search by part number
+  const url = await page.$eval('form.header-search__form', el => el.action);
+  page.on('dialog', dialog => dialog.dismiss());
+  await page.goto(`${url}?q=${encodeURIComponent(params.partNumber)}`);
+  await page.waitForTimeout(4000);
+  await page.goto(`${url}?q=${encodeURIComponent(params.partNumber)}`);
+  // await page.type('#header-search-input', params.partNumber);
+  // await page.keyboard.press('Enter');
 
   // read product info from list
   if (await page.$('.plp-no-results-header')) {
