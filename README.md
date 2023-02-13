@@ -2,19 +2,21 @@
 
 Auto parts search engine.
 
-## Set browser path
+## Set puppeteer variables
 
 ```sh
 export PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium"
+# OR
+export PUPPETEER_BROWSER_URL="http://localhost:9222"
 ```
 
-## How to run the server
+## Run the server
 
 ```sh
 npm start
 ```
 
-## How to build for production
+## Build for production
 
 ```sh
 npm run build

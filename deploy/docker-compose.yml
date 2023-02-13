@@ -13,18 +13,24 @@ services:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_SECRET:-secret}
   acme:
-    image: ghcr.io/meefik/acme:latest
-    build: ./acme
-    network_mode: bridge
-    ports:
-      - "0.0.0.0:80:80/tcp"
+    image: goacme/lego:latest
+    network_mode: host
     volumes:
       - acme:/.lego
-    environment:
-      ACME_DOMAIN: ${DOMAIN_NAME:-localhost}
-      ACME_EMAIL: admin@${DOMAIN_NAME:-localhost}
-      ACME_DAYS: 15
-      ACME_WEBROOT: /.lego/webroot
+    entrypoint: |
+      sh -cxe 'test -n "${DOMAIN_NAME}" || exit 1
+      test -e /.lego/webroot || mkdir -p /.lego/webroot
+      WEBROOT_ARG=""
+      if ! $(nc -z 127.0.0.1 80)
+      then
+        WEBROOT_ARG="--http.webroot /.lego/webroot"
+      fi
+      if [ -e "/.lego/certificates/${DOMAIN_NAME}.key" ]
+      then
+        exec /usr/bin/lego --domains="${DOMAIN_NAME}" --email="admin@${DOMAIN_NAME}" --accept-tos --key-type=rsa2048 --http ${WEBROOT_ARG} renew --days 15
+      else
+        exec /usr/bin/lego --domains="${DOMAIN_NAME}" --email="admin@${DOMAIN_NAME}" --accept-tos --key-type=rsa2048 --http ${WEBROOT_ARG} run
+      fi'
   chromium:
     image: ghcr.io/meefik/chromium:latest
     build: ./chromium

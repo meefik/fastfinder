@@ -23,10 +23,10 @@ CMD ["/usr/bin/chromium-browser", \
   "--no-default-browser-check", \
   "--no-first-run", \
   "--no-sandbox", \
-	"--safebrowsing-disable-auto-update", \
-	"--ignore-certificate-errors", \
-	"--ignore-ssl-errors", \
-	"--ignore-certificate-errors-spki-list", \
-	"--user-data-dir=/tmp", \
-	"--remote-debugging-port=9222", \
-	"--remote-debugging-address=0.0.0.0"]
+  "--safebrowsing-disable-auto-update", \
+  "--ignore-certificate-errors", \
+  "--ignore-ssl-errors", \
+  "--ignore-certificate-errors-spki-list", \
+  "--user-data-dir=/tmp", \
+  "--remote-debugging-port=9222", \
+  "--remote-debugging-address=0.0.0.0"]
