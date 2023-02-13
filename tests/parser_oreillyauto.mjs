@@ -9,9 +9,9 @@ test('oreillyauto', async (_t) => {
     // make: 'Ford',
     // model: 'F350 Super Duty P/U 2WD',
     // engine: '8 Cylinders 5 5.4L FI SOHC 330 CID'
-    vin: '1FTSW21P75EA53447', // 1FTSW21P75EA53447 (OK), fdfgdfgdfgdfhddfsdgdfhdfhdfhdf (invalid), 1PTSR21P75EA53447 (not found)
+    // vin: '1FTSW21P75EA53447', // 1FTSW21P75EA53447 (OK), fdfgdfgdfgdfhddfsdgdfhdfhdfhdf (invalid), 1PTSR21P75EA53447 (not found)
     zip: '98264', // 1234 (invalid), 98264 (OK), 33333 (not found)
-    partNumber: 'MGA49883' // MGA49883 (OK), yufkuyfkuf (not found), AL9432X (OK)
+    partNumbers: ['MGA49883', 'AL5661X', '304'] // MGA49883 (OK), yufkuyfkuf (not found), AL9432X (OK)
   };
   try {
     const data = await pptr(parser, params);

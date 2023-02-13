@@ -59,7 +59,7 @@ module.exports = async function (page, params) {
           return text ? parseFloat(`${text}`.replace(/[^0-9.]+/g, '')) : null;
         });
         const partNumber = await productSection.$eval('div[data-testid="product-part-number"] >span:nth-child(2)', el => el.textContent?.trim());
-        const availability = await productSection.$eval('span[data-testid^="availability-"]', el => /^In Stock/.test(el.textContent));
+        const availability = await productSection.$eval('span[data-testid^="availability-"]', el => /^In Stock/i.test(el.textContent));
         const location = availability ? await productSection.$eval('button[data-testid="search-store-button"]', el => el.textContent?.trim()) : '';
         const link = await productSection.$eval('div[data-testid="productInfo"] a', el => el.href);
         products.push({

@@ -1,112 +1,79 @@
 module.exports = async function (page, params) {
   const products = [];
-
-  await page.goto('https://www.oreillyauto.com/shop/b');
+  let storeAddress;
 
   // hide ads
   await page.addStyleTag({ content: '.__fsr {display:none!important;}' });
 
-  // choose vehicle
-  /*
-  await page.waitForSelector('[data-qa=header-vehicle-select]');
-  const noCarSelectedText = await page.$eval('[data-qa=header-vehicle-select] .header-icon-button-text__bottom span', el => el.textContent);
-  await page.$eval('[data-qa=header-vehicle-select]', el => el.click());
-  // vehicle: set VIN
-  // VIN example: https://vingenerator.org
-  await page.waitForSelector('.button-link');
-  await page.$eval('.button-link', el => el.click());
-  await page.$eval('#vs-lookup-input', el => el.focus());
-  await page.type('#vs-lookup-input', params.vin);
-  await page.$eval('#vs-lookup-input', el => el.blur());
-  await page.$eval('.lookup-form__submit', el => el.click());
-  await page.waitForSelector('.lookup-form__submit div', { hidden: true });
-  if (await page.$('.lookup-form__submit')) {
-    throw new Error('VIN not found');
-  }
-  // wait for save the vehicle
-  await page.waitForFunction(noCarSelectedText => {
-    const carSelectedText = document.querySelector('[data-qa=header-vehicle-select] .header-icon-button-text__bottom span')?.textContent;
-    return carSelectedText && carSelectedText !== noCarSelectedText;
-  }, {}, noCarSelectedText);
-  */
-
-  // add location by zip code (first store found)
-  await page.waitForSelector('[data-qa=header-find-a-store]');
-  const noStoreSelectedText = await page.$eval('[data-qa=header-find-a-store] .header-icon-button-text__bottom span', el => el.textContent);
-  await page.$eval('[data-qa=header-find-a-store]', el => el.click());
-  await page.waitForSelector('#find-a-store-search');
-  await page.type('#find-a-store-search', params.zip);
-  await page.waitForSelector('#find-a-store-search-suggestions');
-  if (!await page.$('ul#find-a-store-search-suggestions > li')) {
-    throw new Error('ZIP not found');
-  }
-  await page.$eval('.fas-autocomplete__button', el => el.click());
-  await page.waitForSelector('.fas-list-item__confirm-button', { hidden: true });
-  await page.waitForSelector('.fas-search-results__list .fas-list-item:nth-child(1) button');
-  let storeAddress;
-  if (await page.$('.fas-search-results__list .pin-number')) {
-    storeAddress = await page.$eval('.fas-search-results__list .store-info__address', el => el.textContent?.replace('  ', ', ').trim());
-  } else {
-    storeAddress = await page.$eval('.fas-search-results__list p', el => el.textContent?.replace('  ', ', ').trim());
-  }
-  await page.$eval('.fas-search-results__list .fas-list-item:nth-child(1) button', el => el.click());
-  await page.waitForFunction(noStoreSelectedText => {
-    const storeSelectedText = document.querySelector('[data-qa=header-find-a-store] .header-icon-button-text__bottom span')?.textContent;
-    return storeSelectedText && storeSelectedText !== noStoreSelectedText;
-  }, {}, noStoreSelectedText);
-
-  // FIXME: Access denied for goto /searh?q=
-  // search by part number
-  const url = await page.$eval('form.header-search__form', el => el.action);
-  page.on('dialog', dialog => dialog.dismiss());
-  await page.goto(`${url}?q=${encodeURIComponent(params.partNumber)}`);
-  await page.waitForTimeout(4000);
-  await page.goto(`${url}?q=${encodeURIComponent(params.partNumber)}`);
-  // await page.type('#header-search-input', params.partNumber);
-  // await page.keyboard.press('Enter');
-
-  // read product info from list
-  if (await page.$('.plp-no-results-header')) {
-    throw new Error('No parts found with part number provided');
-  }
-  try {
-    await page.waitForSelector('.availability', { visible: true });
-  } catch (err) {}
-  const productList = await page.$$('article.product');
-  for (let i = 0; i < productList.length; i++) {
-    const productSection = productList[i];
-    const image = await productSection.$eval('.product__image', async el => {
-      el.scrollIntoView();
-      for (let i = 0; i < 10; i++) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        if (!/^data/.test(el.src)) break;
+  // search by part numbers
+  for (const partNumber of params.partNumbers) {
+    // const url = await page.$eval('form.header-search__form', el => el.action);
+    const response = await page.goto(`https://www.oreillyauto.com/search?q=${encodeURIComponent(partNumber)}`);
+    if (response.status() !== 200) {
+      await page.reload();
+      // Setting location by zip
+      await page.waitForSelector('[data-qa=header-find-a-store]');
+      const noStoreSelectedText = await page.$eval('[data-qa=header-find-a-store] .header-icon-button-text__bottom span', el => el.textContent);
+      await page.$eval('[data-qa=header-find-a-store]', el => el.click());
+      await page.waitForSelector('#find-a-store-search');
+      await page.type('#find-a-store-search', params.zip);
+      await page.waitForSelector('#find-a-store-search-suggestions');
+      if (!await page.$('ul#find-a-store-search-suggestions > li')) {
+        throw new Error('ZIP not found');
       }
-      return el.src;
-    });
-    const title = await productSection.$eval('a>h2', el => el.textContent?.trim());
-    const partNumber = await productSection.$eval('.part-info__code.js-ga-product-line-number', el => el.textContent?.trim());
-    const price = await productSection.$eval('strong.pricing_price', el => {
-      const text = el.textContent;
-      return text ? parseFloat(text.replace(/[^0-9.]+/g, '')) : null;
-    });
-    const availability = await productSection.$eval('.js-avail-pickup input', el => !el.disabled) && await productSection.$eval('.atc_btn', el => !el.disabled);
-    const location = availability ? storeAddress : '';
-    let fits = true;
-    if (await productSection.$('.checkfit-banner span')) {
-      fits = await productSection.$eval('.checkfit-banner span', el => el.textContent.trim().startsWith('Fits'));
+      await page.$eval('.fas-autocomplete__button', el => el.click());
+      await page.waitForSelector('.fas-list-item__confirm-button', { hidden: true });
+      await page.waitForSelector('.fas-search-results__list .fas-list-item:nth-child(1) button');
+      if (await page.$('.fas-search-results__list .pin-number')) {
+        storeAddress = await page.$eval('.fas-search-results__list .store-info__address', el => el.textContent?.replace('  ', ', ').trim());
+      } else {
+        storeAddress = await page.$eval('.fas-search-results__list p', el => el.textContent?.replace('  ', ', ').trim());
+      }
+      await page.$eval('.fas-search-results__list .fas-list-item:nth-child(1) button', el => el.click());
+      await page.waitForFunction(noStoreSelectedText => {
+        const storeSelectedText = document.querySelector('[data-qa=header-find-a-store] .header-icon-button-text__bottom span')?.textContent;
+        return storeSelectedText && storeSelectedText !== noStoreSelectedText;
+      }, {}, noStoreSelectedText);
     }
-    const link = await productSection.$eval('.product__link', el => el.href);
-    products.push({
-      seller: 'oreillyauto',
-      image,
-      title,
-      partNumber,
-      price,
-      location,
-      availability,
-      fits,
-      link
-    });
+
+    // read product info from list
+    if (await page.$('.plp-no-results-header')) {
+      continue;
+    }
+    try {
+      await page.waitForSelector('.availability', { visible: true });
+    } catch (err) {}
+    const productList = await page.$$('article.product');
+    for (let i = 0; i < productList.length; i++) {
+      const productSection = productList[i];
+      const image = await productSection.$eval('.product__image', async el => {
+        el.scrollIntoView();
+        for (let i = 0; i < 10; i++) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+          if (!/^data/.test(el.src)) break;
+        }
+        return el.src;
+      });
+      const title = await productSection.$eval('a>h2', el => el.textContent?.trim());
+      const partNumber = await productSection.$eval('.part-info__code.js-ga-product-line-number', el => el.textContent?.trim());
+      const price = await productSection.$eval('strong.pricing_price', el => {
+        const text = el.textContent;
+        return text ? parseFloat(text.replace(/[^0-9.]+/g, '')) : null;
+      });
+      const availability = await productSection.$eval('.js-avail-pickup input', el => !el.disabled) && await productSection.$eval('.atc_btn', el => !el.disabled);
+      const location = availability ? storeAddress : '';
+      const link = await productSection.$eval('.product__link', el => el.href);
+      products.push({
+        seller: 'oreillyauto',
+        image,
+        title,
+        partNumber,
+        price,
+        location,
+        availability,
+        link
+      });
+    }
   }
 
   return products;
