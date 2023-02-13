@@ -38,7 +38,6 @@ function resolveIpAddress (url) {
  * @property {number} price Price per item.
  * @property {string} location Store address.
  * @property {boolean} availability Availability in the store.
- * @property {boolean} fits Item fits chosen vehicle.
  * @property {string} link Link to the item in the store.
  */
 
@@ -47,9 +46,8 @@ function resolveIpAddress (url) {
  *
  * @param {function} parser Parser start function.
  * @param {Object} params Input parameters.
- * @param {string} params.vin Vehicle VIN code
  * @param {string} params.zip Store ZIP code
- * @param {string} params.partNumber Part number
+ * @param {string[]} params.partNumbers List of part numbers
  * @returns {Item[]} List of found parts
  */
 module.exports = async function (parser, params) {
@@ -58,9 +56,6 @@ module.exports = async function (parser, params) {
 
   try {
     // check params are valid
-    if (params.vin.length !== 17 || Array.from(params.vin).some((element) => ['Q', 'O', 'I'].includes(element))) {
-      throw new Error('Invalid VIN');
-    }
     if (!/^\d{5}$/.test(params.zip)) {
       throw new Error('Invalid US ZIP');
     }
@@ -99,6 +94,11 @@ module.exports = async function (parser, params) {
   }
 
   // Return filtered products by part number
-  const partNumberRe = new RegExp(`^${params?.partNumber}`, 'i');
-  return products.filter(item => partNumberRe.test(item.partNumber));
+  let productsFiltered = [];
+  for (const partNumber of params.partNumbers) {
+    const partNumberRe = new RegExp(`^${partNumber}`, 'i');
+    productsFiltered = productsFiltered.concat(products.filter(item => partNumberRe.test(item.partNumber)));
+  }
+
+  return productsFiltered;
 };
