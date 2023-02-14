@@ -1,12 +1,9 @@
 module.exports = async function (page, params) {
   const products = [];
 
-  await page.goto('https://www.autozone.com/parts');
+  await page.goto('https://www.autozone.com');
 
-  // hide ads
-  await page.addStyleTag({ content: '.lilo3746-wrapper {display:none!important;}' });
-
-  // add location by zip code (first store found)
+  // Add location by ZIP code (first store found)
   await page.waitForSelector('#nav_wrapper span[data-testid="store-name-text-top-header"]');
   const oldStoreName = await page.$eval('#nav_wrapper span[data-testid="store-name-text-top-header"]', el => el.textContent);
   await page.$eval('#nav_wrapper div[data-testid="at_store_locator_homepage"]', el => el.click());
@@ -27,12 +24,12 @@ module.exports = async function (page, params) {
     return newStoreName && newStoreName !== oldStoreName;
   }, {}, oldStoreName);
 
-  // search by part numbers
+  // Search by part numbers
   for (const partNumber of params.partNumbers) {
     await page.goto(`https://www.autozone.com/searchresult?searchText=${encodeURIComponent(partNumber)}`);
     await page.waitForSelector('h1[data-testid="search-results-thin-header"], h1[data-testid="product-title"]');
 
-    // go to the first category
+    // Go to the first category
     const categoryElement = await page.$('div[data-testid="search-result-list"] a');
     if (categoryElement) {
       const href = await categoryElement.evaluate(el => el.href, categoryElement);
@@ -40,7 +37,10 @@ module.exports = async function (page, params) {
       await page.waitForSelector('div[data-testid="productInfoSection"], h1[data-testid="product-title"]');
     }
 
-    // read procuct info from list
+    // Hide ads
+    await page.addStyleTag({ content: '.lilo3746-wrapper {display:none!important;}' });
+
+    // Read procuct info from list
     const productList = await page.$$('div[data-testid="productInfoSection"]');
     if (productList?.length) {
       for (let i = 0; i < productList.length; i++) {
@@ -74,11 +74,11 @@ module.exports = async function (page, params) {
         });
       }
     } else {
-      // read product info from single page
+      // Read product info from single page
       const titleElement = await page.$('h1[data-testid="product-title"]');
       if (titleElement) {
         const title = await titleElement.evaluate(el => el.textContent?.trim(), titleElement);
-        // wait for the price to load
+        // Wait for the price to load
         await page.waitForFunction(() => {
           const el = document.querySelector('div[data-testid="price-quantity-wrapper"] div[data-testid="price-fragment"]');
           return !/^Price Not Available/i.test(el?.textContent);
