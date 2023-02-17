@@ -5,13 +5,13 @@
 ### Build all images
 
 ```sh
-docker compose build --pull
+docker compose -f ./deploy/docker-compose.yml build --pull
 ```
 
 ### Build the specified image
 
 ```sh
-docker compose build --pull <service>
+docker compose -f ./deploy/docker-compose.yml build --pull <service>
 ```
 
 ### Login to GutHub Packages registry
