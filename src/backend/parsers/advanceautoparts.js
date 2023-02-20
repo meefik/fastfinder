@@ -35,17 +35,13 @@ module.exports = async function (page, params) {
     await page.addStyleTag({ content: '.bx-slab {display:none!important;}' });
     await page.addStyleTag({ content: '#bx-shroud-2085869 {display:none!important;}' });
 
-    // await page.waitForSelector('.css-cbtwv9');
-
     // Next if no results
-    if (await page.$('.css-cbtwv9')) {
+    await page.waitForSelector('.css-ieskej, div.css-cbtwv9', { visible: true });
+    if (await page.$('div.css-cbtwv9')) {
       continue;
     }
 
     // Read product info from list
-    // await page.waitForSelector('span.css-mavoe4', { visible: true });
-    // await page.waitForSelector('[data-testid="price-box"] div[aria-label]', { visible: true });
-    await page.waitForSelector('.css-ieskej', { visible: true });
     await page.waitForSelector('.css-ieskej', { hidden: true });
     const productList = await page.$$('div.css-1uv02u6');
     if (productList?.length) {
