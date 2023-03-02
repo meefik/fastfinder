@@ -1,5 +1,6 @@
 import http from 'node:http';
 import puppeteer from 'puppeteer-core';
+import getUserAgent from './useragent.mjs';
 
 const { NODE_ENV, PUPPETEER_EXECUTABLE_PATH, PUPPETEER_BROWSER_URL } = process.env;
 const DEBUG_MODE = NODE_ENV === 'development';
@@ -80,7 +81,7 @@ export default async function (parser, params) {
       height: 720,
       deviceScaleFactor: 1
     });
-    await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36');
+    await page.setUserAgent(getUserAgent());
 
     // Run the parser
     products = await parser(page, params);

@@ -63,7 +63,7 @@ export default async function (page, params) {
         const location = availability ? await productSection.$eval('button[data-testid="search-store-button"]', el => el.textContent?.trim()) : '';
         const link = await productSection.$eval('div[data-testid="productInfo"] a', el => el.href);
         products.push({
-          parser: 'autozone',
+          seller: 'autozone',
           image,
           title,
           partNumber,

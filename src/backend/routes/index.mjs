@@ -8,6 +8,7 @@ import pptr from '../lib/pptr.mjs';
 import logger from '../lib/logger.mjs';
 import parserAutozone from '../parsers/autozone.mjs';
 import parserOreillyauto from '../parsers/oreillyauto.mjs';
+import parserAdvanceautoparts from '../parsers/advanceautoparts.mjs';
 
 const router = express.Router();
 
@@ -108,6 +109,11 @@ router.use('/search', isAuth, function (req, res, next) {
     pptr(parserOreillyauto, params).catch(err => logger.log({
       level: 'error',
       label: 'oreillyauto',
+      message: err.message
+    })),
+    pptr(parserAdvanceautoparts, params).catch(err => logger.log({
+      level: 'error',
+      label: 'advanceautoparts',
       message: err.message
     }))
   ]).then(data => {

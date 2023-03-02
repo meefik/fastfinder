@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import pptr from '../src/backend/lib/pptr.js';
-import parser from '../src/backend/parsers/advanceautoparts.js';
+import pptr from '../src/backend/lib/pptr.mjs';
+import parser from '../src/backend/parsers/advanceautoparts.mjs';
 
 test('advanceautoparts', async (_t) => {
   const params = {
