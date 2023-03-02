@@ -1,5 +1,6 @@
-const http = require('node:http');
-const puppeteer = require('puppeteer-core');
+import http from 'node:http';
+import puppeteer from 'puppeteer-core';
+
 const { NODE_ENV, PUPPETEER_EXECUTABLE_PATH, PUPPETEER_BROWSER_URL } = process.env;
 const DEBUG_MODE = NODE_ENV === 'development';
 
@@ -50,7 +51,7 @@ function resolveIpAddress (url) {
  * @param {string[]} params.partNumbers List of part numbers
  * @returns {Item[]} List of found parts
  */
-module.exports = async function (parser, params) {
+export default async function (parser, params) {
   let browser, context, page;
   let products = [];
 

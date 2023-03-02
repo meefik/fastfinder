@@ -1,125 +1,72 @@
-const nconf = require('nconf');
-nconf.use('memory');
-nconf.env({
-  separator: '_',
-  lowerCase: true,
-  parseValues: true
-});
-nconf.defaults(require('config'));
-const cluster = require('node:cluster');
-const logger = require('lib/logger');
-// Error handling
-process.on('uncaughtException', function (err) {
-  logger.log({
-    level: 'error',
-    label: 'server',
-    message: err.message
-  });
-});
-if (cluster.isMaster) {
-  // Shutdown process
-  const shutdown = async function () {
-    if (shutdown.executed) return;
-    shutdown.executed = true;
-    const timeout = parseInt(nconf.get('timeout'));
-    if (timeout > 0) {
-      setTimeout(() => process.exit(1), timeout * 1000);
-    }
-    function killAllWorkers () {
-      let allWorkersAreDead = true;
-      for (const id in cluster.workers) {
-        const worker = cluster.workers[id];
-        if (!worker.isDead()) {
-          allWorkersAreDead = false;
-          worker.process.kill('SIGTERM');
-        }
-      }
-      if (!allWorkersAreDead) {
-        setTimeout(killAllWorkers, 1000);
-      } else {
-        process.exit(0);
-      }
-    }
-    killAllWorkers();
-  };
-  // Create workers
-  for (let i = 0; i < nconf.get('threads'); i++) {
-    cluster.fork();
+import fs from 'node:fs';
+import path from 'node:path';
+import http from 'node:http';
+import https from 'node:https';
+import nconf from 'nconf';
+import express from 'express';
+import morgan from 'morgan';
+import compression from 'compression';
+import cors from 'cors';
+import db from './db/index.mjs';
+import routes from './routes/index.mjs';
+import logger from './lib/logger.mjs';
+
+const PUBLIC_DIR = path.join(path.dirname(__filename), 'public');
+let server, httpServer;
+
+// Shutdown worker
+async function shutdown () {
+  if (shutdown.executed) return;
+  shutdown.executed = true;
+  const timeout = parseInt(nconf.get('timeout'));
+  if (timeout > 0) {
+    setTimeout(() => process.exit(1), timeout * 1000);
   }
-  // Restart workers
-  cluster.on('exit', function (worker, code, signal) {
-    if (shutdown.executed) return;
-    cluster.fork();
-  });
-  // Message exchange between workers
-  cluster.on('message', function (worker, data) {
-    for (const id in cluster.workers) {
-      cluster.workers[id].send(data);
+  try {
+    await db?.disconnect();
+    await Promise.all([
+      new Promise(resolve => server ? server.close(resolve) : resolve()),
+      new Promise(resolve => httpServer ? httpServer.close(resolve) : resolve())
+    ]);
+    process.exit(0);
+  } catch (err) {
+    logger.log({
+      level: 'error',
+      label: 'server',
+      message: err.message
+    });
+    process.exit(1);
+  }
+};
+
+// Parse SSL path
+function parseConf (val) {
+  if (!val) return;
+  try {
+    if (/^-----/.test(val)) {
+      return String(val).replace(/\\n/g, '\n');
+    } else {
+      const data = fs.readFileSync(val, { encoding: 'utf8' });
+      fs.watchFile(val, shutdown);
+      return data;
     }
-  });
-  // Process termination
-  process.once('SIGTERM', shutdown);
-  // Ctrl+C
-  process.once('SIGINT', shutdown);
-  // Graceful shutdown for nodemon
-  process.once('SIGUSR2', shutdown);
-} else if (cluster.isWorker) {
-  const express = require('express');
-  const fs = require('node:fs');
-  const path = require('node:path');
-  const morgan = require('morgan');
-  const compression = require('compression');
-  const cors = require('cors');
-  const db = require('db');
+  } catch (err) {
+    logger.log({
+      level: 'error',
+      label: 'server',
+      message: err.message || err
+    });
+  }
+};
+
+export default function () {
   const app = express();
-  // Shutdown worker
-  const shutdown = async function () {
-    if (shutdown.executed) return;
-    shutdown.executed = true;
-    const timeout = parseInt(nconf.get('timeout'));
-    if (timeout > 0) {
-      setTimeout(() => process.exit(1), timeout * 1000);
-    }
-    try {
-      await db?.disconnect();
-      await Promise.all([
-        new Promise(resolve => server ? server.close(resolve) : resolve()),
-        new Promise(resolve => httpServer ? httpServer.close(resolve) : resolve())
-      ]);
-      process.exit(0);
-    } catch (err) {
-      logger.log({
-        level: 'error',
-        label: 'server',
-        message: err.message
-      });
-      process.exit(1);
-    }
-  };
   // Create web server
-  const parseConf = function (val) {
-    if (!val) return;
-    try {
-      if (/^-----/.test(val)) {
-        return String(val).replace(/\\n/g, '\n');
-      } else {
-        const data = fs.readFileSync(val, { encoding: 'utf8' });
-        fs.watchFile(val, shutdown);
-        return data;
-      }
-    } catch (err) {
-      logger.log({
-        level: 'error',
-        label: 'server',
-        message: err.message || err
-      });
-    }
-  };
   const protocol = nconf.get('ssl:key') && nconf.get('ssl:cert')
     ? 'https'
     : 'http';
-  const server = (protocol === 'https')
-    ? require('node:https').Server(
+  server = (protocol === 'https')
+    ? https.Server(
       {
         key: parseConf(nconf.get('ssl:key')),
         cert: parseConf(nconf.get('ssl:cert')),
@@ -127,7 +74,7 @@ if (cluster.isMaster) {
       },
       app
     )
-    : require('node:http').Server(app);
+    : http.Server(app);
   // Setup app server
   app.enable('trust proxy');
   app.disable('x-powered-by');
@@ -163,9 +110,9 @@ if (cluster.isMaster) {
   app.use('/ping', function (req, res) {
     res.end('OK');
   });
-  app.use('/api', require('./routes'));
+  app.use('/api', routes);
   // Static
-  [nconf.get('static:dir'), path.join(__dirname, 'public')].forEach(function (dir) {
+  [nconf.get('static:dir'), PUBLIC_DIR].forEach(function (dir) {
     if (!dir) return;
     app.use(
       express.static(
@@ -221,9 +168,7 @@ if (cluster.isMaster) {
     });
   });
   // HTTP web server
-  let httpServer;
   if (protocol === 'https' && nconf.get('http:port')) {
-    const http = require('node:http');
     httpServer = http.createServer(async function (req, res) {
       // ACME HTTP validation (from directory)
       // https://letsencrypt.org/docs/challenge-types/#http-01-challenge

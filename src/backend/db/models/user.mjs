@@ -1,7 +1,8 @@
-const nconf = require('nconf');
-const mongoose = require('mongoose');
-const crypto = require('node:crypto');
-const jwt = require('jsonwebtoken');
+import crypto from 'node:crypto';
+import nconf from 'nconf';
+import mongoose from 'mongoose';
+import jwt from 'jsonwebtoken';
+
 const Schema = mongoose.Schema;
 
 const UserSchema = new Schema({
@@ -152,4 +153,4 @@ UserSchema.statics.logIn = async function (data) {
 
 const User = mongoose.model('User', UserSchema);
 
-module.exports = User;
+export default User;

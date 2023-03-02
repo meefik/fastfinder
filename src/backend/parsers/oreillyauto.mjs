@@ -1,4 +1,4 @@
-module.exports = async function (page, params) {
+export default async function (page, params) {
   const products = [];
   let storeAddress;
 

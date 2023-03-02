@@ -34,11 +34,8 @@ module.exports = function (env, argv) {
       res[mod] = 'commonjs ' + mod;
       return res;
     }, {}),
-    node: {
-      __dirname: false
-    },
     entry: {
-      server: 'server.js'
+      server: 'server.mjs'
     },
     output: {
       path: DIST_DIR,
@@ -205,6 +202,7 @@ module.exports = function (env, argv) {
     },
     resolve: {
       extensions: ['.mjs', '.js', '.svelte'],
+      conditionNames: ['require', 'node', 'svelte'],
       modules: [
         path.join(__dirname, 'src/frontend'),
         path.join(__dirname, 'node_modules')

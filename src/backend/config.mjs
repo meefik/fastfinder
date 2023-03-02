@@ -1,6 +1,7 @@
-const os = require('node:os');
+import os from 'node:os';
+import nconf from 'nconf';
 
-module.exports = {
+const config = {
   host: '0.0.0.0',
   port: 3000,
   threads: os.cpus().length, // cores
@@ -26,3 +27,14 @@ module.exports = {
     // webroot: '/etc/acme/webroot'
   }
 };
+
+// Read config
+nconf.use('memory');
+nconf.env({
+  separator: '_',
+  lowerCase: true,
+  parseValues: true
+});
+nconf.defaults(config);
+
+export default nconf;

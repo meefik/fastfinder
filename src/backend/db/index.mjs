@@ -1,25 +1,11 @@
-const mongoose = require('mongoose');
-const nconf = require('nconf');
-const logger = require('lib/logger');
+import nconf from 'nconf';
+import mongoose from 'mongoose';
+import logger from '../lib/logger.mjs';
+import User from '../db/models/user.mjs';
 
 const conn = mongoose.connection;
 
 mongoose.set('strictQuery', true);
-
-function connect () {
-  return mongoose
-    .connect(nconf.get('mongo:uri'), {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    })
-    .catch(function () {
-      setTimeout(connect, 5000);
-    });
-}
-
-function disconnect () {
-  return mongoose.connection.close();
-}
 
 conn.once('open', function () {
   logger.log({ level: 'info', label: 'db', message: 'Database is connected' });
@@ -41,7 +27,6 @@ conn.once('open', function () {
     logger.log({ level: 'error', label: 'db', message: err.message });
   };
   // Add default user
-  const User = require('db/models/user');
   User.on('index', async function (err) {
     if (err) return errorLog(err);
     try {
@@ -69,7 +54,22 @@ conn.on('error', function (err) {
   logger.log({ level: 'error', label: 'db', message: err });
 });
 
-module.exports = {
+function connect () {
+  return mongoose
+    .connect(nconf.get('mongo:uri'), {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    })
+    .catch(function () {
+      setTimeout(connect, 5000);
+    });
+}
+
+function disconnect () {
+  return mongoose.connection.close();
+}
+
+export default {
   get connection () {
     return mongoose.connection;
   },

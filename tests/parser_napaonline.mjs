@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import pptr from '../src/backend/lib/pptr.js';
-import parser from '../src/backend/parsers/napaonline.js';
+import pptr from '../src/backend/lib/pptr.mjs';
+import parser from '../src/backend/parsers/napaonline.mjs';
 
 test('napaonline', async (_t) => {
   const params = {

@@ -1,14 +1,15 @@
-const express = require('express');
+import nconf from 'nconf';
+import express from 'express';
+import passport from 'passport';
+import { Strategy as LocalStrategy } from 'passport-local';
+import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
+import User from '../db/models/user.mjs';
+import pptr from '../lib/pptr.mjs';
+import logger from '../lib/logger.mjs';
+import parserAutozone from '../parsers/autozone.mjs';
+import parserOreillyauto from '../parsers/oreillyauto.mjs';
+
 const router = express.Router();
-const nconf = require('nconf');
-const passport = require('passport');
-const { Strategy: LocalStrategy } = require('passport-local');
-const { Strategy: JwtStrategy, ExtractJwt } = require('passport-jwt');
-const User = require('db/models/user');
-const pptr = require('lib/pptr');
-const logger = require('lib/logger');
-const parserAutozone = require('parsers/autozone');
-const parserOreillyauto = require('parsers/oreillyauto');
 
 function isAuth (req, res, next) {
   if (!req.user) {
@@ -123,4 +124,4 @@ router.use('/search', isAuth, function (req, res, next) {
   });
 });
 
-module.exports = router;
+export default router;

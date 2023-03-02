@@ -1,6 +1,5 @@
-const cluster = require('node:cluster');
-const { createLogger, format, transports } = require('winston');
-const { combine, timestamp, colorize, printf } = format;
+import cluster from 'node:cluster';
+import { createLogger, format, transports } from 'winston';
 
 const DEBUG_MODE = process.env.NODE_ENV === 'development';
 const PRINT_FN = function ({ label, level, message, timestamp }) {
@@ -10,6 +9,7 @@ const PRINT_FN = function ({ label, level, message, timestamp }) {
   }]: ${message}`;
 };
 
+const { combine, timestamp, colorize, printf } = format;
 const logger = createLogger({
   level: DEBUG_MODE ? 'debug' : 'info',
   format: DEBUG_MODE
@@ -24,4 +24,4 @@ const logger = createLogger({
   exitOnError: false
 });
 
-module.exports = logger;
+export default logger;
