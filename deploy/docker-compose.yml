@@ -76,6 +76,7 @@ services:
       SSL_KEY: /etc/acme/certificates/${DOMAIN_NAME:-localhost}.key
       SSL_CERT: /etc/acme/certificates/${DOMAIN_NAME:-localhost}.crt
       PUPPETEER_BROWSER_URL: http://chromium:9222
+      NODE_TLS_REJECT_UNAUTHORIZED: 0
 volumes:
   db: {}
   configdb: {}

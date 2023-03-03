@@ -4,11 +4,8 @@ import passport from 'passport';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import User from '../db/models/user.mjs';
-import pptr from '../lib/pptr.mjs';
-import logger from '../lib/logger.mjs';
-import parserAutozone from '../parsers/autozone.mjs';
-import parserOreillyauto from '../parsers/oreillyauto.mjs';
-import parserAdvanceautoparts from '../parsers/advanceautoparts.mjs';
+import catalogRouter from './catalog.mjs';
+import searchRouter from './search.mjs';
 
 const router = express.Router();
 
@@ -93,41 +90,10 @@ router.post('/login',
     res.json({ user: req.user, token });
   });
 
+// Endpoint for catalog
+router.use('/catalog', isAuth, catalogRouter);
+
 // Endpoint to run search
-router.use('/search', isAuth, function (req, res, next) {
-  const params = {
-    vin: req.body.vin,
-    zip: req.body.zip,
-    partNumber: req.body.partNumber
-  };
-  Promise.all([
-    pptr(parserAutozone, params).catch(err => logger.log({
-      level: 'error',
-      label: 'autozone',
-      message: err.message
-    })),
-    pptr(parserOreillyauto, params).catch(err => logger.log({
-      level: 'error',
-      label: 'oreillyauto',
-      message: err.message
-    })),
-    pptr(parserAdvanceautoparts, params).catch(err => logger.log({
-      level: 'error',
-      label: 'advanceautoparts',
-      message: err.message
-    }))
-  ]).then(data => {
-    const output = data.reduce((arr, item) => {
-      if (Array.isArray(item)) arr.push(...item);
-      return arr;
-    }, []).map((item, index) => {
-      item.id = index + 1;
-      return item;
-    });
-    res.json(output);
-  }).catch(err => {
-    next(err);
-  });
-});
+router.use('/search', isAuth, searchRouter);
 
 export default router;

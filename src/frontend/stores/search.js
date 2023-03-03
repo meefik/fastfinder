@@ -4,8 +4,8 @@ function getSessionToken () {
   return localStorage.getItem(SESSION_KEY) || '';
 }
 
-export async function searchProducts (params) {
-  const res = await fetch('/api/search', {
+async function sendRequest (url, params) {
+  const res = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -19,4 +19,8 @@ export async function searchProducts (params) {
   } else {
     throw Error(`${res.statusText} (${res.status})`);
   }
+}
+
+export async function searchProducts (seller, params) {
+  return await sendRequest(`/api/search/${seller}`, params);
 }
