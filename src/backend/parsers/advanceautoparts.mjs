@@ -53,9 +53,9 @@ export default async function (page, params) {
         const price = await productSection.$$eval('[data-testid="price-box"] div[aria-label]', els => {
           let text;
           if (els.length > 1) {
-            text = els[1].getAttribute('aria-label');
+            text = els[1]?.getAttribute('aria-label');
           } else {
-            text = els[0].getAttribute('aria-label');
+            text = els[0]?.getAttribute('aria-label');
           }
           return text ? parseFloat(text.replace(/[^0-9.]+/g, '')) : null;
         });

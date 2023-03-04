@@ -27,14 +27,14 @@ export default async function (page, params) {
   // Search by part numbers
   for (const partNumber of params.partNumbers) {
     await page.goto(`https://www.autozone.com/searchresult?searchText=${encodeURIComponent(partNumber)}`);
-    await page.waitForSelector('h1[data-testid="search-results-thin-header"], h1[data-testid="product-title"]');
+    await page.waitForSelector('h1[data-testid="search-results-thin-header"], h1[data-testid="product-title"], h3[data-testid*="product-title"]');
 
     // Go to the first category
     const categoryElement = await page.$('div[data-testid="search-result-list"] a');
     if (categoryElement) {
       const href = await categoryElement.evaluate(el => el.href, categoryElement);
       await page.goto(href);
-      await page.waitForSelector('div[data-testid="productInfoSection"], h1[data-testid="product-title"]');
+      await page.waitForSelector('div[data-testid="productInfoSection"], h1[data-testid="product-title"], h3[data-testid*="product-title"]');
     }
 
     // Hide ads
