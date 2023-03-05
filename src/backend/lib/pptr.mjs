@@ -58,8 +58,8 @@ export default async function (parser, params) {
 
   try {
     // check params are valid
-    if (!/^\d{5}$/.test(params.zip)) {
-      throw new Error('Invalid US ZIP');
+    if (!/^([ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ -]?\d[ABCEGHJ-NPRSTV-Z]\d)|^(\d{5})$/i.test(params.zip)) {
+      throw new Error('Invalid US or Canada ZIP');
     }
 
     // Connect to browser
@@ -84,7 +84,7 @@ export default async function (parser, params) {
     await page.setUserAgent(getUserAgent());
 
     // Run the parser
-    products = await parser(page, params);
+    products = await parser(page, params, context);
   } finally {
     await page?.close();
     await context?.close();
