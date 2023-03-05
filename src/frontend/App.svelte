@@ -39,7 +39,8 @@
   }
 </script>
 
-<Header company="FastFinder" platformName="Auto parts search engine">
+<!-- svelte-ignore missing-declaration -->
+<Header company="FastFinder" platformName={VERSION}>
   {#if logged?.user}
     <HeaderNav>
       {#if logged.user.role === "admin"}
