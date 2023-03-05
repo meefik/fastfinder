@@ -19,7 +19,7 @@
     logged = value;
     if (typeof value !== "undefined") {
       if (!value) location.href = "#/login";
-      else if (location.hash === "#/login") {
+      else if (location.hash === "#/login" || !routes[location.hash.slice(1)]) {
         if (value.user?.role === "admin") location.href = "#/users";
         else location.href = "#/search";
       }

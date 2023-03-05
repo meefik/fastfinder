@@ -2,7 +2,7 @@ import http from 'node:http';
 import puppeteer from 'puppeteer-core';
 import getUserAgent from './useragent.mjs';
 
-const { NODE_ENV, PUPPETEER_EXECUTABLE_PATH, PUPPETEER_BROWSER_URL } = process.env;
+const { NODE_ENV, PUPPETEER_EXECUTABLE_PATH, PUPPETEER_BROWSER_URL, PUPPETEER_TIMEOUT } = process.env;
 const DEBUG_MODE = NODE_ENV === 'development';
 
 /**
@@ -80,6 +80,7 @@ export default async function (parser, params) {
       deviceScaleFactor: 1
     });
     await page.setUserAgent(getUserAgent());
+    await page.setDefaultTimeout(PUPPETEER_TIMEOUT || 60000);
 
     // Disable images and CSS to speed up web scraping
     if (!DEBUG_MODE) {
