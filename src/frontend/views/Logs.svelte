@@ -20,8 +20,12 @@
   let rows = [];
 
   async function syncLogsList() {
-    const { data, total } = await getLogsList(pageSize, (page - 1) * pageSize);
-    rows = data || [];
+    const skip = (page - 1) * pageSize;
+    const { data, total } = await getLogsList(pageSize, skip);
+    rows = (data || []).map((o, i) => {
+      o.index = 1 + i + skip;
+      return o;
+    });
     totalItems = total || 0;
   }
 
@@ -36,6 +40,7 @@
         title="Users"
         sortable
         headers={[
+          { key: "index", value: "#" },
           { key: "user.username", value: "Username" },
           { key: "createdAt", value: "Timestamp" },
           { key: "ip", value: "IP address" },
