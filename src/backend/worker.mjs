@@ -10,6 +10,7 @@ import cors from 'cors';
 import db from './db/index.mjs';
 import routes from './routes/index.mjs';
 import logger from './lib/logger.mjs';
+import weblog from './lib/weblog.mjs';
 
 const PUBLIC_DIR = path.join(path.dirname(__filename), 'public');
 let server, httpServer;
@@ -86,8 +87,8 @@ export default function () {
       const statusCode = tokens.status(req, res);
       const statusMessage = res.statusMessage;
       const size = tokens.res(req, res, 'content-length') || 0;
-      const time = ~~tokens['response-time'](req, res);
-      const message = `${ip} - ${method} ${url} ${statusCode} (${statusMessage}) ${size} bytes - ${time} ms`;
+      const duration = ~~tokens['response-time'](req, res);
+      const message = `${ip} - ${method} ${url} ${statusCode} (${statusMessage}) ${size} bytes - ${duration} ms`;
       const label = req.protocol;
       let level;
       if (res.statusCode >= 100) {
@@ -100,6 +101,10 @@ export default function () {
         level = 'verbose';
       }
       logger.log({ level, label, message });
+      if (/^\/api\//.test(url)) {
+        const useragent = req.get('user-agent');
+        weblog({ user: req.user?.id, ip, useragent, method, url, statusCode, statusMessage, duration, size });
+      }
     })
   );
   app.use(compression());

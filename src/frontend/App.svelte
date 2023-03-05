@@ -19,6 +19,10 @@
     logged = value;
     if (typeof value !== "undefined") {
       if (!value) location.href = "#/login";
+      else if (location.hash === "#/login") {
+        if (value.user?.role === "admin") location.href = "#/users";
+        else location.href = "#/search";
+      }
     }
   });
 
@@ -38,7 +42,12 @@
 <Header company="FastFinder" platformName="Auto parts search engine">
   {#if logged?.user}
     <HeaderNav>
-      <HeaderNavItem href="#/" text="Home" />
+      {#if logged.user.role === "admin"}
+        <HeaderNavItem href="#/users" text="Users" />
+        <HeaderNavItem href="#/logs" text="Logs" />
+      {:else}
+        <HeaderNavItem href="#/search" text="Search" />
+      {/if}
       <HeaderNavItem href="#/about" text="About" />
     </HeaderNav>
     <HeaderUtilities>

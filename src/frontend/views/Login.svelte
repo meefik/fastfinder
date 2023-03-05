@@ -28,7 +28,6 @@
     const formData = new FormData(this);
     try {
       await logIn(Object.fromEntries(formData));
-      location.href = "#/";
     } catch (err) {
       error = err.message;
     }

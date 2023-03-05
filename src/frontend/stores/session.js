@@ -1,25 +1,11 @@
 import { writable } from 'svelte/store';
 import { SESSION_KEY, SESSION_TIMEOUT } from 'config';
-
-function getSessionToken () {
-  return localStorage.getItem(SESSION_KEY) || '';
-}
+import { sendRequest } from '../lib/utils';
 
 export async function logIn ({ username, password }) {
   try {
-    const res = await fetch('/api/login', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ username, password })
-    });
-    if (res.ok) {
-      const data = await res.json();
-      session.set(data);
-    } else {
-      throw Error(`${res.statusText} (${res.status})`);
-    }
+    const data = await sendRequest('/api/login', 'POST', { username, password });
+    session.set(data);
   } catch (err) {
     console.error(err);
     session.set(null);
@@ -28,17 +14,8 @@ export async function logIn ({ username, password }) {
 
 async function syncSessionData () {
   try {
-    const res = await fetch('/api/state', {
-      headers: {
-        Authorization: `Bearer ${getSessionToken()}`
-      }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      session.set(data);
-    } else {
-      throw Error(`${res.statusText} (${res.status})`);
-    }
+    const data = await sendRequest('/api/state', 'GET');
+    session.set(data);
   } catch (err) {
     console.error(err);
     session.set(null);

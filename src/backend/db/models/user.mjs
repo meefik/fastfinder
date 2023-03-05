@@ -8,6 +8,7 @@ const Schema = mongoose.Schema;
 const UserSchema = new Schema({
   username: {
     type: String,
+    unique: true,
     require: true
   },
   locked: {
@@ -30,11 +31,7 @@ const UserSchema = new Schema({
     type: String
   },
   lang: {
-    type: String,
-    set (value) {
-      if (!value) return null;
-      return ['en', 'ru'].includes(value) ? value : 'en';
-    }
+    type: String
   },
   createdAt: {
     type: Date,
