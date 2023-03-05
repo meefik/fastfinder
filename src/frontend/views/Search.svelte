@@ -33,6 +33,7 @@
   let page = 1;
   let filteredRowIds = [];
   let loading = false;
+  let time;
   let years = [];
   let makes = [];
   let models = [];
@@ -60,11 +61,12 @@
    */
   function formHandler(e) {
     e.preventDefault();
-    loading = true;
-    const _rows = [];
     const formData = new FormData(this);
     const params = Object.fromEntries(formData);
     if (params.zip && params.partNumbers) {
+      loading = true;
+      time = null;
+      const _rows = [];
       const getProductsBySeller = async (seller) => {
         try {
           const items =
@@ -77,6 +79,7 @@
           console.error(err);
         }
       };
+      const now = Date.now();
       Promise.all([
         getProductsBySeller("autozone").catch(console.error),
         getProductsBySeller("oreillyauto").catch(console.error),
@@ -86,6 +89,7 @@
           item.id = index + 1;
           return item;
         });
+        time = ~~((Date.now() - now) / 1000);
         loading = false;
       });
     }
@@ -316,6 +320,11 @@
           pageInputDisabled
           pageSizeInputDisabled
         />
+      {/if}
+      {#if time}
+        <div style="text-align:right;font-size:0.8em;">
+          Generated in {time} sec.
+        </div>
       {/if}
     </Column>
   </Row>

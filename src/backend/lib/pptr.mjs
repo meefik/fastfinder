@@ -67,9 +67,7 @@ export default async function (parser, params) {
       ? await puppeteer.connect({
         browserURL: await resolveIpAddress(PUPPETEER_BROWSER_URL)
       })
-      : await puppeteer.launch(DEBUG_MODE
-        ? { executablePath: PUPPETEER_EXECUTABLE_PATH, headless: false, devtools: true }
-        : { executablePath: PUPPETEER_EXECUTABLE_PATH, headless: true });
+      : await puppeteer.launch({ executablePath: PUPPETEER_EXECUTABLE_PATH, headless: !DEBUG_MODE });
 
     // Create a new incognito browser context
     context = await browser.createIncognitoBrowserContext();
@@ -82,6 +80,28 @@ export default async function (parser, params) {
       deviceScaleFactor: 1
     });
     await page.setUserAgent(getUserAgent());
+
+    // Disable images and CSS to speed up web scraping
+    if (!DEBUG_MODE) {
+      await page.setRequestInterception(true);
+      page.on('request', (req) => {
+        if (req.resourceType() === 'image') {
+          req.respond({
+            body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z/C/HgAGgwJ/lK3Q6wAAAABJRU5ErkJggg==', 'base64')
+          });
+        } else if (req.resourceType() === 'stylesheet') {
+          req.respond({
+            body: ''
+          });
+        } else if (req.resourceType() === 'font') {
+          req.respond({
+            body: ''
+          });
+        } else {
+          req.continue();
+        }
+      });
+    }
 
     // Run the parser
     products = await parser(page, params);
