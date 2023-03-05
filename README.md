@@ -7,7 +7,7 @@ Auto parts search engine.
 ```sh
 export PUPPETEER_EXECUTABLE_PATH="/usr/bin/chromium"
 # OR
-export PUPPETEER_BROWSER_URL="http://localhost:9222"
+export PUPPETEER_BROWSER_URL="http://127.0.0.1:9222"
 ```
 
 ## Run the server
