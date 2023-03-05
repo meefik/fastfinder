@@ -7,7 +7,7 @@ const config = {
   threads: os.cpus().length, // cores
   timeout: 10, // seconds
   mongo: {
-    uri: 'mongodb://admin:secret@localhost:27017/fastfinder?authSource=admin'
+    uri: 'mongodb://admin:secret@127.0.0.1:27017/fastfinder?authSource=admin'
   },
   ssl: {
     // key: '-----BEGIN RSA PRIVATE KEY-----\n...',

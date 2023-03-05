@@ -1,7 +1,7 @@
 import { sendRequest, downloadFile } from '../lib/utils';
 
-export async function getLogsList () {
-  return await sendRequest('/api/logs', 'GET');
+export async function getLogsList (limit, skip) {
+  return await sendRequest(`/api/logs?limit=${limit}&skip=${skip}`, 'GET');
 }
 
 export async function downloadLogsAsCSV (select) {

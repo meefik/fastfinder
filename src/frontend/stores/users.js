@@ -1,7 +1,7 @@
 import { sendRequest } from '../lib/utils';
 
-export async function getUsersList () {
-  return await sendRequest('/api/users', 'GET');
+export async function getUsersList (limit, skip) {
+  return await sendRequest(`/api/users?limit=${limit}&skip=${skip}`, 'GET');
 }
 
 export async function createUser (data) {

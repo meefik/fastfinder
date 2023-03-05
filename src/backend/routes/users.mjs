@@ -5,8 +5,10 @@ const router = express.Router();
 
 router.get('/', async function (req, res, next) {
   try {
-    const users = await User.find({}).exec();
-    res.json(users);
+    const { limit = 100, skip = 0 } = req.query;
+    const total = await User.countDocuments({});
+    const data = await User.find({}).limit(limit).skip(skip).exec();
+    res.json({ total, limit, skip, data });
   } catch (err) {
     next(err);
   }

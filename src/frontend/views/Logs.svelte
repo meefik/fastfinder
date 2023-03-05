@@ -16,14 +16,16 @@
   let filteredRowIds = [];
   let pageSize = 20;
   let page = 1;
+  let totalItems = 0;
   let rows = [];
 
   async function syncLogsList() {
-    const users = await getLogsList();
-    if (users) rows = users;
+    const { data, total } = await getLogsList(pageSize, (page - 1) * pageSize);
+    rows = data || [];
+    totalItems = total || 0;
   }
 
-  syncLogsList();
+  $: syncLogsList(page);
 </script>
 
 <!-- Table -->
@@ -46,8 +48,6 @@
           { key: "size", value: "Size" },
         ]}
         {rows}
-        {pageSize}
-        {page}
       >
         <Toolbar>
           <ToolbarContent>
@@ -90,7 +90,8 @@
       <Pagination
         bind:pageSize
         bind:page
-        totalItems={filteredRowIds.length}
+        bind:totalItems
+        pageInputDisabled
         pageSizeInputDisabled
       />
     </Column>

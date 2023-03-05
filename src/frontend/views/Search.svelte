@@ -313,6 +313,7 @@
           bind:pageSize
           bind:page
           totalItems={filteredRowIds.length}
+          pageInputDisabled
           pageSizeInputDisabled
         />
       {/if}

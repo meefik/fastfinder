@@ -28,6 +28,7 @@
   let selectedRowIds = [];
   let pageSize = 20;
   let page = 1;
+  let totalItems = 0;
   let rows = [];
   let createUserDialog = false;
   let deleteUserDialog = false;
@@ -35,11 +36,12 @@
   let user = {};
 
   async function syncUsersList() {
-    const users = await getUsersList();
-    if (users) rows = users;
+    const { data, total } = await getUsersList(pageSize, (page - 1) * pageSize);
+    rows = data || [];
+    totalItems = total || 0;
   }
 
-  syncUsersList();
+  $: syncUsersList(page);
 </script>
 
 <!-- Create User Dialog -->
@@ -161,8 +163,6 @@
           { key: "useragent", value: "User-Agent" },
         ]}
         {rows}
-        {pageSize}
-        {page}
         on:click:row--select={(e) => {
           user = e.detail.row;
         }}
@@ -219,7 +219,8 @@
       <Pagination
         bind:pageSize
         bind:page
-        totalItems={filteredRowIds.length}
+        bind:totalItems
+        pageInputDisabled
         pageSizeInputDisabled
       />
     </Column>
