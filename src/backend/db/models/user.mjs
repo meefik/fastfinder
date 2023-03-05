@@ -46,6 +46,9 @@ const UserSchema = new Schema({
   useragent: {
     type: String
   }
+}, {
+  strict: true,
+  strictQuery: false
 });
 
 UserSchema.virtual('password')

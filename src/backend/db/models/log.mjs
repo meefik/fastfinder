@@ -35,6 +35,9 @@ const LogSchema = new Schema({
   size: {
     type: Number
   }
+}, {
+  strict: true,
+  strictQuery: false
 });
 
 LogSchema.set('toJSON', {
