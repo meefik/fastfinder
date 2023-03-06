@@ -9,6 +9,7 @@ export async function logIn ({ username, password }) {
   } catch (err) {
     console.error(err);
     session.set(null);
+    throw err;
   }
 }
 
