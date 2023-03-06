@@ -4,11 +4,14 @@ export default async function (page, params) {
   await page.goto('https://www.autozone.com');
 
   // Add location by ZIP code (first store found)
-  await page.waitForSelector('#nav_wrapper span[data-testid="store-name-text-top-header"]');
-  const oldStoreName = await page.$eval('#nav_wrapper span[data-testid="store-name-text-top-header"]', el => el.textContent);
+  await page.waitForSelector('#nav_wrapper div[data-testid="at_store_locator_homepage"]');
   await page.$eval('#nav_wrapper div[data-testid="at_store_locator_homepage"]', el => el.click());
-  await page.waitForSelector('#changeStoreBtn');
-  await page.$eval('#changeStoreBtn', el => el.click());
+  await page.waitForSelector('#changeStoreBtn, #SearchInput');
+  // If the location is automatically selected by IP
+  if (await page.$('#changeStoreBtn')) {
+    await page.$eval('#changeStoreBtn', el => el.click());
+    await page.$eval('#nav_wrapper span[data-testid="store-name-text-top-header"]', el => el.remove());
+  }
   await page.waitForSelector('#SearchInput');
   await page.$eval('#SearchInput', el => el.focus());
   await page.type('#SearchInput', params.zip);
@@ -19,10 +22,7 @@ export default async function (page, params) {
   }
   await page.waitForSelector('button[data-testid="set-store-btn-0"]');
   await page.$eval('button[data-testid="set-store-btn-0"]', el => el.click());
-  await page.waitForFunction(oldStoreName => {
-    const newStoreName = document.querySelector('#nav_wrapper span[data-testid="store-name-text-top-header"]')?.textContent;
-    return newStoreName && newStoreName !== oldStoreName;
-  }, {}, oldStoreName);
+  await page.waitForSelector('#nav_wrapper span[data-testid="store-name-text-top-header"]');
 
   // Search by part numbers
   for (const partNumber of params.partNumbers) {
@@ -36,9 +36,6 @@ export default async function (page, params) {
       await page.goto(href);
       await page.waitForSelector('div[data-testid="productInfoSection"], h1[data-testid="product-title"], h3[data-testid*="product-title"]');
     }
-
-    // Hide ads
-    await page.addStyleTag({ content: '.lilo3746-wrapper {display:none!important;}' });
 
     // Read procuct info from list
     const productList = await page.$$('div[data-testid="productInfoSection"]');

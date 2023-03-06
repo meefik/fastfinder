@@ -2,42 +2,33 @@ export default async function (page, params) {
   const products = [];
   let storeAddress = '';
 
-  await page.goto('https://shop.advanceautoparts.com/');
-
-  // Hide ads
-  await page.addStyleTag({ content: '#bx-shroud-1575058 {display:none!important;}' });
-  await page.addStyleTag({ content: '.bx-slab {display:none!important;}' });
-  await page.addStyleTag({ content: '#bx-shroud-2085869 {display:none!important;}' });
-
   // Add location by ZIP code (first store found)
-  await page.waitForSelector('a.css-1jzuwcj');
-  await page.$eval('a.css-1jzuwcj', el => el.click());
-  await page.waitForSelector('h2.css-w92r0m');
+  await page.goto('https://shop.advanceautoparts.com/web/StoreLocatorView');
+  // await page.waitForSelector('header a[href^="/web/StoreLocatorView"]');
+  // await page.$eval('header a[href^="/web/StoreLocatorView"]', el => el.click());
+  await page.waitForSelector('#address');
   await page.type('#address-input', params.zip);
-  await page.$eval('button[aria-label="Find a Store"]', el => el.click());
+  await page.$eval('button[aria-label="Find a Store"]', el => {
+    el.click();
+    el.disabled = true;
+  });
   await page.waitForSelector('button[aria-label="Find a Store"]:disabled', { hidden: true });
-  if (!await page.$('div.css-1twpn9q')) {
+  if (!await page.$('button[aria-label="Make My Store"], button[aria-label="My Selected Store"]')) {
     throw new Error('ZIP not found');
   }
-  await page.$eval('div.css-1twpn9q button', el => el.click());
-  await page.waitForSelector('div.css-1twpn9q div[data-testid="loading-animation"]', { hidden: true });
-  storeAddress = await page.$$eval('a.css-1jzuwcj div div div', els => {
-    storeAddress = els[0].textContent + ', ' + els[1].textContent;
-    return storeAddress;
-  });
+  if (!await page.$('button[aria-label="My Selected Store"]')) {
+    await page.$eval('button[aria-label="Make My Store"]', el => el.click());
+    await page.waitForSelector('button[aria-label="My Selected Store"]');
+  }
+  storeAddress = await page.$eval('header a[href^="/web/StoreLocatorView"]', el => el.textContent?.trim());
 
   // Search by part numbers
   for (const partNumber of params.partNumbers) {
     await page.goto(`https://shop.advanceautoparts.com/web/SearchResults?searchTerm=${encodeURIComponent(partNumber)}`);
 
-    // Hide ads
-    await page.addStyleTag({ content: '#bx-shroud-1575058 {display:none!important;}' });
-    await page.addStyleTag({ content: '.bx-slab {display:none!important;}' });
-    await page.addStyleTag({ content: '#bx-shroud-2085869 {display:none!important;}' });
-
     // Next if no results
-    await page.waitForSelector('.css-ieskej, div.css-cbtwv9', { visible: true });
-    if (await page.$('div.css-cbtwv9')) {
+    await page.waitForSelector('button[aria-label="Find My Store"], button[aria-label="ADD TO CART"]');
+    if (await page.$('button[aria-label="Find My Store"]')) {
       continue;
     }
 
