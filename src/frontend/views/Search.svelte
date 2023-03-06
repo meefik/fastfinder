@@ -15,6 +15,7 @@
     Button,
     Link,
     DataTableSkeleton,
+    Checkbox,
   } from "carbon-components-svelte";
   import Launch from "carbon-icons-svelte/lib/Launch.svelte";
   import {
@@ -34,6 +35,12 @@
   let filteredRowIds = [];
   let loading = false;
   let time;
+  let sellers = [
+    { id: "autozone", text: "autozone.com" },
+    { id: "oreillyauto", text: "oreillyauto.com" },
+    { id: "advanceautoparts", text: "advanceautoparts.com" },
+  ];
+  let selectedSellers = ["autozone", "oreillyauto", "advanceautoparts"];
   let years = [];
   let makes = [];
   let models = [];
@@ -80,11 +87,11 @@
         }
       };
       const now = Date.now();
-      Promise.all([
-        getProductsBySeller("autozone").catch(console.error),
-        getProductsBySeller("oreillyauto").catch(console.error),
-        getProductsBySeller("advanceautoparts").catch(console.error),
-      ]).finally(() => {
+      Promise.all(
+        selectedSellers.map((seller) =>
+          getProductsBySeller(seller).catch(console.error)
+        )
+      ).finally(() => {
         rows = _rows.map((item, index) => {
           item.id = index + 1;
           return item;
@@ -172,6 +179,15 @@
   <Row>
     <Column max={4}>
       <Form on:submit={formHandler}>
+        <FormGroup legendText="Sellers">
+          {#each sellers as seller}
+            <Checkbox
+              bind:group={selectedSellers}
+              labelText={seller.text}
+              value={seller.id}
+            />
+          {/each}
+        </FormGroup>
         <FormGroup legendText="Location">
           <TextInput name="zip" placeholder="ZIP" bind:value={zip} />
         </FormGroup>
