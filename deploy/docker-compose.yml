@@ -20,20 +20,20 @@ services:
     entrypoint: |
       sh -cxe 'test -n "${DOMAIN_NAME}" || exit 1
       test -e /.lego/webroot || mkdir -p /.lego/webroot
-      if ! $(nc -z 127.0.0.1 80)
+      if $(nc -z 127.0.0.1 80)
       then
         if [ -e "/.lego/certificates/${DOMAIN_NAME}.key" ]
         then
-          echo exec /usr/bin/lego --domains="${DOMAIN_NAME}" --email="admin@${DOMAIN_NAME}" --accept-tos --key-type=rsa2048 --http --http.webroot /.lego/webroot renew --days 15
+          exec /lego --domains="${DOMAIN_NAME}" --email="admin@${DOMAIN_NAME}" --accept-tos --key-type=rsa2048 --http --http.webroot /.lego/webroot renew --days 15
         else
-          echo exec /usr/bin/lego --domains="${DOMAIN_NAME}" --email="admin@${DOMAIN_NAME}" --accept-tos --key-type=rsa2048 --http --http.webroot /.lego/webroot run
+          exec /lego --domains="${DOMAIN_NAME}" --email="admin@${DOMAIN_NAME}" --accept-tos --key-type=rsa2048 --http --http.webroot /.lego/webroot run
         fi
       else
         if [ -e "/.lego/certificates/${DOMAIN_NAME}.key" ]
         then
-          echo exec /usr/bin/lego --domains="${DOMAIN_NAME}" --email="admin@${DOMAIN_NAME}" --accept-tos --key-type=rsa2048 --http renew --days 15
+          exec /lego --domains="${DOMAIN_NAME}" --email="admin@${DOMAIN_NAME}" --accept-tos --key-type=rsa2048 --http renew --days 15
         else
-          echo exec /usr/bin/lego --domains="${DOMAIN_NAME}" --email="admin@${DOMAIN_NAME}" --accept-tos --key-type=rsa2048 --http run
+          exec /lego --domains="${DOMAIN_NAME}" --email="admin@${DOMAIN_NAME}" --accept-tos --key-type=rsa2048 --http run
         fi
       fi'
   chromium:
