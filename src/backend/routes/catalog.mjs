@@ -19,7 +19,7 @@ const router = express.Router();
 
 router.post('/years', async function (req, res, next) {
   try {
-    const CACHE_KEY = 'epicor-years';
+    const CACHE_KEY = `epicor-years:${req.user?.id}`;
     let data = await readCache(CACHE_KEY, CAHCE_EXPIRES);
     if (!data) {
       data = await loginUser();
@@ -34,7 +34,7 @@ router.post('/years', async function (req, res, next) {
 router.post('/makes', async function (req, res, next) {
   try {
     const { sid, year } = req.body;
-    const CACHE_KEY = `epicor-makes:${year}`;
+    const CACHE_KEY = `epicor-makes:${sid}:${year}`;
     let data = await readCache(CACHE_KEY, CAHCE_EXPIRES);
     if (!data) {
       data = await selectYear(sid, year);
@@ -49,7 +49,7 @@ router.post('/makes', async function (req, res, next) {
 router.post('/models', async function (req, res, next) {
   try {
     const { sid, year, make } = req.body;
-    const CACHE_KEY = `epicor-models:${year}:${make}`;
+    const CACHE_KEY = `epicor-models:${sid}:${year}:${make}`;
     let data = await readCache(CACHE_KEY, CAHCE_EXPIRES);
     if (!data) {
       data = await selectMake(sid, year, make);
@@ -64,7 +64,7 @@ router.post('/models', async function (req, res, next) {
 router.post('/engines', async function (req, res, next) {
   try {
     const { sid, year, make, model } = req.body;
-    const CACHE_KEY = `epicor-engines:${year}:${make}:${model}`;
+    const CACHE_KEY = `epicor-engines:${sid}:${year}:${make}:${model}`;
     let data = await readCache(CACHE_KEY, CAHCE_EXPIRES);
     if (!data) {
       data = await selectModel(sid, year, make, model);
@@ -80,7 +80,7 @@ router.post('/categories', async function (req, res, next) {
   try {
     const { sid, year, make, model, engine, vin } = req.body;
     if (vin) {
-      const CACHE_KEY = `epicor-categories:${vin}`;
+      const CACHE_KEY = `epicor-categories:${sid}:${vin}`;
       let data = await readCache(CACHE_KEY, CAHCE_EXPIRES);
       if (!data) {
         data = await doVinLookup(sid, vin);
@@ -88,7 +88,7 @@ router.post('/categories', async function (req, res, next) {
       }
       res.json(data);
     } else {
-      const CACHE_KEY = `epicor-categories:${year}:${make}:${model}:${engine}`;
+      const CACHE_KEY = `epicor-categories:${sid}:${year}:${make}:${model}:${engine}`;
       let data = await readCache(CACHE_KEY, CAHCE_EXPIRES);
       if (!data) {
         data = await selectEngine(sid, year, make, model, engine);
@@ -104,7 +104,7 @@ router.post('/categories', async function (req, res, next) {
 router.post('/groups', async function (req, res, next) {
   try {
     const { sid, category } = req.body;
-    const CACHE_KEY = `epicor-groups:${category}`;
+    const CACHE_KEY = `epicor-groups:${sid}:${category}`;
     let data = await readCache(CACHE_KEY, CAHCE_EXPIRES);
     if (!data) {
       data = await selectCategory(sid, category);
@@ -119,7 +119,7 @@ router.post('/groups', async function (req, res, next) {
 router.post('/partnumbers', async function (req, res, next) {
   try {
     const { sid, category, group } = req.body;
-    const CACHE_KEY = `epicor-groups:${category}:${group}`;
+    const CACHE_KEY = `epicor-groups:${sid}:${category}:${group}`;
     let data = await readCache(CACHE_KEY, CAHCE_EXPIRES);
     if (!data) {
       data = await selectGroup(sid, category, group);

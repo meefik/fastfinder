@@ -3,9 +3,10 @@ import mongoose from 'mongoose';
 const Schema = mongoose.Schema;
 
 const CacheSchema = new Schema({
-  createdAt: {
+  updatedAt: {
     type: Date,
-    default: Date.now
+    default: Date.now,
+    expires: 24 * 60 * 60 // 1 day
   },
   key: {
     type: String,
