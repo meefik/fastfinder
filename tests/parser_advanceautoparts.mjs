@@ -6,7 +6,7 @@ import parser from '../src/backend/parsers/advanceautoparts.mjs';
 test('advanceautoparts', async (_t) => {
   const params = {
     zip: '98264', // '1234' (invalid), '98264' (OK), '33333' (not found)
-    partNumbers: ['4322P', '8302A', 'KTI45600', 'ABCDEFGH']
+    partNumbers: ['4322P', '8302A', 'KTI45600', 'H13XV', 'ABCDEFGH']
   };
   try {
     const data = await pptr(parser, params);

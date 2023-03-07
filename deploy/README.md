@@ -33,11 +33,11 @@ docker push ghcr.io/meefik/<NAME>:latest
 ### Create and run containers
 
 ```sh
-DOMAIN_NAME=fastfinder.autos
+DOMAIN_NAME=app.fastfinder.autos
 SESSION_KEY=secret
 MONGO_SECRET=secret
 
-docker compose up -d --no-build
+docker compose up -d --no-build --pull always
 ```
 
 All environment variables can be saved to an `.env` file.

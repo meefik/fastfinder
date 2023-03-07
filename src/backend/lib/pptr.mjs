@@ -80,7 +80,7 @@ export default async function (parser, params) {
       deviceScaleFactor: 1
     });
     await page.setUserAgent(getUserAgent());
-    await page.setDefaultTimeout(PUPPETEER_TIMEOUT || 60000);
+    await page.setDefaultTimeout(PUPPETEER_TIMEOUT || 30000);
 
     // Disable images and CSS to speed up web scraping
     if (!DEBUG_MODE) {
