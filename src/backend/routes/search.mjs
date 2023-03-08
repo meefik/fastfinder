@@ -3,6 +3,7 @@ import pptr from '../lib/pptr.mjs';
 import parserAutozone from '../parsers/autozone.mjs';
 import parserOreillyauto from '../parsers/oreillyauto.mjs';
 import parserAdvanceautoparts from '../parsers/advanceautoparts.mjs';
+import parserPartsource from '../parsers/partsource.mjs';
 import {
   readCache,
   writeCache
@@ -57,6 +58,24 @@ router.post('/advanceautoparts', async function (req, res, next) {
     let data = await readCache(CACHE_KEY, CAHCE_EXPIRES);
     if (!data) {
       data = await pptr(parserAdvanceautoparts, params);
+      await writeCache(CACHE_KEY, data);
+    }
+    res.json(data);
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/partsource', async function (req, res, next) {
+  try {
+    const params = {
+      zip: req.body.zip,
+      partNumbers: req.body.partNumbers
+    };
+    const CACHE_KEY = `partsource:${params.zip}:${params.partNumbers}`;
+    let data = await readCache(CACHE_KEY, CAHCE_EXPIRES);
+    if (!data) {
+      data = await pptr(parserPartsource, params);
       await writeCache(CACHE_KEY, data);
     }
     res.json(data);

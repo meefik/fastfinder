@@ -1,4 +1,4 @@
-export default async function (page, params, context) {
+export default async function (page, params) {
   const products = [];
   let storeAddress = '';
 
@@ -14,10 +14,6 @@ export default async function (page, params, context) {
   });
 
   await page.goto('https://www.partsource.ca/apps/store-locator/');
-
-  // Hide ads
-  await page.addStyleTag({ content: '.gf-popupOverlay {display:none!important;}' });
-  await page.addStyleTag({ content: '#m-1635532295580 {display:none!important;}' });
 
   // Add location by ZIP code (first store found)
   await page.waitForSelector('#address_search');
@@ -36,10 +32,6 @@ export default async function (page, params, context) {
   // Search by part numbers
   for (const partNumber of params.partNumbers) {
     await page.goto(`https://www.partsource.ca/search?type=product&q=${encodeURIComponent(partNumber)}*`);
-
-    // Hide ads
-    await page.addStyleTag({ content: '.gf-popupOverlay {display:none!important;}' });
-    await page.addStyleTag({ content: '#m-1635532295580 {display:none!important;}' });
 
     // Next if no results
     await page.waitForSelector('span.boost-pfs-filter-total-product', { visible: true });
@@ -75,23 +67,13 @@ export default async function (page, params, context) {
         }
         const link = await productSection.$eval('.boost-pfs-filter-product-bottom-inner a', el => el.href);
 
-        // Open new page for product to get availability
-        const productPage = await context.newPage();
-        await productPage.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36');
-        await productPage.goto(link);
-        await productPage.waitForSelector('#part_Availability');
-        const availability = !!(await productPage.$('#part_Availability.partAvailable'));
-        const location = availability ? storeAddress : '';
-        await productPage.close();
-
         products.push({
           seller: 'partsource',
           image,
           title,
           partNumber,
           price,
-          availability,
-          location,
+          location: storeAddress,
           link
         });
       }

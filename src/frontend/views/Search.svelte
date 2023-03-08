@@ -37,10 +37,11 @@
   let time;
   let sellers = [
     { id: "autozone", text: "autozone.com" },
-    { id: "oreillyauto", text: "oreillyauto.com" },
+    // { id: "oreillyauto", text: "oreillyauto.com" },
     { id: "advanceautoparts", text: "advanceautoparts.com" },
+    { id: "partsource", text: "partsource.ca" },
   ];
-  let selectedSellers = ["autozone", "oreillyauto", "advanceautoparts"];
+  let selectedSellers = ["autozone", "advanceautoparts", "partsource"];
   let years = [];
   let makes = [];
   let models = [];

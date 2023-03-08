@@ -57,11 +57,6 @@ export default async function (parser, params) {
   let products = [];
 
   try {
-    // check params are valid
-    if (!/^([ABCEGHJ-NPRSTVXY]\d[ABCEGHJ-NPRSTV-Z][ -]?\d[ABCEGHJ-NPRSTV-Z]\d)|^(\d{5})$/i.test(params.zip)) {
-      throw new Error('Invalid US or Canada ZIP');
-    }
-
     // Connect to browser
     browser = PUPPETEER_BROWSER_URL
       ? await puppeteer.connect({
