@@ -51,7 +51,6 @@ export default async function (page, params) {
           return text ? parseFloat(text.replace(/[^0-9.]+/g, '')) : null;
         });
         const availability = !!(await productSection.$('.css-1tq25me .css-3dklwr'));
-        const location = availability ? storeAddress : '';
         const link = await productSection.$eval('a.css-vurnku', el => el.href);
         products.push({
           seller: 'advanceautoparts',
@@ -60,7 +59,7 @@ export default async function (page, params) {
           partNumber,
           price,
           availability,
-          location,
+          location: storeAddress,
           link
         });
       }
