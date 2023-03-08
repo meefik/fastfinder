@@ -43,6 +43,8 @@ services:
     network_mode: bridge
     #ports:
     #  - "0.0.0.0:9222:9222/tcp"
+    #environment:
+    #  http_proxy: http://64.225.103.135:80
   fastfinder:
     image: ghcr.io/meefik/fastfinder:latest
     build:
