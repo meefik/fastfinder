@@ -16,6 +16,8 @@ export PUPPETEER_BROWSER_URL="http://127.0.0.1:9222"
 npm start
 ```
 
+User and password by default: `admin / changeme`
+
 ## Build for production
 
 ```sh
