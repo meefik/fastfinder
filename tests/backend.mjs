@@ -1,16 +1,18 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import mongoose from 'mongoose';
 import config from '../src/backend/config.mjs';
 import db from '../src/backend/db/index.mjs';
 import User from '../src/backend/db/models/user.mjs';
 
-async function httpRequest (url, method = 'POST', data = {}) {
+async function httpRequest (url, method = 'POST', data, headers) {
   const res = await fetch(`http://localhost:${config.get('port')}${url}`, {
     method,
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      ...headers
     },
-    body: JSON.stringify(data)
+    body: data ? JSON.stringify(data) : null
   });
   if (res.ok) {
     const json = await res.json();
@@ -38,5 +40,22 @@ test('backend-api-login', async (_t) => {
   } finally {
     await User.deleteOne({ username: 'test' });
     await db.disconnect();
+  }
+});
+
+test('backend-api-state', async (_t) => {
+  try {
+    const { token } = User.getToken({
+      id: new mongoose.Types.ObjectId(),
+      username: 'test',
+      nickname: 'test',
+      role: 'user'
+    });
+    const res = await httpRequest('/api/state', 'GET', null, {
+      Authorization: `Bearer ${token}`
+    });
+    assert.ok(!!(res.token && res.user));
+  } catch (err) {
+    assert.fail(err);
   }
 });
