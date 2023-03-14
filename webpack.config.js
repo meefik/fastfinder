@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const webpack = require('webpack');
-const { execSync } = require('child_process');
 const pack = require('./package.json');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
@@ -19,7 +18,6 @@ module.exports = function (env, argv) {
   if (fs.existsSync(DIST_DIR)) {
     fs.rmSync(DIST_DIR, { recursive: true });
   }
-  const COMMIT_HASH = execSync('git rev-parse --short HEAD').toString().slice(0, 7);
   return [{
     mode: DEV_MODE ? 'development' : 'production',
     devtool: DEV_MODE ? 'source-map' : false,
@@ -80,7 +78,7 @@ module.exports = function (env, argv) {
     },
     plugins: [
       new webpack.DefinePlugin({
-        VERSION: `'${pack.version}-${COMMIT_HASH}'`,
+        VERSION: `'${pack.version}'`,
         APPNAME: `'${pack.name}'`,
         PRODUCTION: !DEV_MODE
       }),
@@ -228,7 +226,7 @@ module.exports = function (env, argv) {
     },
     plugins: [
       new webpack.DefinePlugin({
-        VERSION: `'${pack.version}-${COMMIT_HASH}'`,
+        VERSION: `'${pack.version}'`,
         APPNAME: `'${pack.name}'`,
         DEBUG: DEV_MODE
       }),
