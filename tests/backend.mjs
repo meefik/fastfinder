@@ -6,7 +6,7 @@ import db from '../src/backend/db/index.mjs';
 import User from '../src/backend/db/models/user.mjs';
 
 async function httpRequest (url, method = 'POST', data, headers) {
-  const res = await fetch(`http://localhost:${config.get('port')}${url}`, {
+  const res = await fetch(`http://127.0.0.1:${config.get('port')}${url}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
