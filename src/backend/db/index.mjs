@@ -17,7 +17,7 @@ conn.once('open', function () {
         label: 'db',
         message: `${collectionName}.${method}(${
           query ? JSON.stringify(query) : ''
-        }) ${JSON.stringify(doc)}`
+        }) ${doc ? JSON.stringify(doc) : ''}`
       });
     });
   }
